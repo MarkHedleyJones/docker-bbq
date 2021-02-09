@@ -1,0 +1,81 @@
+#!/bin/bash
+
+image=NULL
+
+# Locate Dockerfile to determine image name
+path=$(pwd)
+while [[ ${path} != "/" ]]; do
+    if [[ -f ${path}/Dockerfile ]]; then
+        image=$(basename ${path})
+        break
+    fi
+    path=$(dirname ${path})
+done
+
+if [[ ${image} == NULL ]]; then
+    echo "Couldnt find a Dockerfile this or any parent directory - aborting!"
+    exit 1
+fi
+
+tag=latest
+local_workspace="${path}/workspace"
+image_workspace="/ws"
+
+docker_command="/bin/bash"
+docker_args_interactive="--interactive --tty"
+if [[ ${#} -gt 0 ]]; then
+    if [[ -f ${local_workspace}/${1} ]]; then
+        docker_command="/bin/bash -c \"${image_workspace}/$@\""
+    else
+        docker_command="/bin/bash -c \"$@\""
+    fi
+
+    docker_args_interactive=""
+fi
+
+xsock=/tmp/.X11-unix
+xauth=/tmp/.docker.xauth
+touch $xauth
+xauth nlist ${DISPLAY} | sed -e 's/^..../ffff/' | xauth -f ${xauth} nmerge -
+
+docker_args_display="-e DISPLAY "
+docker_args_display+="-e XAUTHORITY=${xauth} "
+docker_args_display+="-v ${xauth}:${xauth}:rw "
+docker_args_display+="-v ${xsock}:${xsock}:rw "
+docker_args_display+="--gpus=all "
+docker_args_display+="-e NVIDIA_DRIVER_CAPABILITIES=all "
+docker_args_display+="--env QT_X11_NO_MITSHM=1 "
+
+# Setup the user
+docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
+
+# Setup the workspace
+if [[ ! -d ${local_workspace} ]]; then
+    mkdir -p ${local_workspace}
+fi
+docker_args_workdir="-v ${local_workspace}:${image_workspace} "
+docker_args_workdir+="--env WORKDIR=${image_workspace} "
+docker_args_workdir+="--workdir=${image_workspace} "
+
+docker run \
+    ${docker_args_interactive} \
+    --name ${image} \
+    --rm \
+    --privileged \
+    --net=host \
+    ${docker_args_display} \
+    ${docker_args_user} \
+    ${docker_args_workdir} \
+    ${image}:${tag} \
+    ${docker_command}
+
+# Recursively set permissions of workspace folder
+docker run \
+    --rm \
+    --privileged \
+    --net=host \
+    ${docker_args_display} \
+    ${docker_args_user} \
+    ${docker_args_workdir} \
+    ${image}:${tag} \
+    /bin/bash -c "chown $(id -u):$(id -g) ${image_workspace} -R"
