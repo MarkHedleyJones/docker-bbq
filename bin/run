@@ -57,7 +57,7 @@ docker_args_workdir="-v ${local_workspace}:${image_workspace} "
 docker_args_workdir+="--env WORKDIR=${image_workspace} "
 docker_args_workdir+="--workdir=${image_workspace} "
 
-docker run \
+eval docker run \
     ${docker_args_interactive} \
     --name ${image} \
     --rm \
