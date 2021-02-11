@@ -22,9 +22,11 @@ local_workspace="${path}/workspace"
 image_workspace="/ws"
 
 docker_command="/bin/bash"
+translated_path=$(pwd | sed "s|${local_workspace}|${image_workspace}|")
+
 if [[ ${#} -gt 0 ]]; then
-    if [[ -f ${local_workspace}/${1} ]]; then
-        docker_command="/bin/bash -c \"${image_workspace}/$@\""
+    if [[ -f $(pwd)/${1} ]]; then
+        docker_command="/bin/bash -c \"${translated_path}/$@\""
     else
         docker_command="/bin/bash -c \"$@\""
     fi
