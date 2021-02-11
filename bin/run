@@ -22,15 +22,12 @@ local_workspace="${path}/workspace"
 image_workspace="/ws"
 
 docker_command="/bin/bash"
-docker_args_interactive="--interactive --tty"
 if [[ ${#} -gt 0 ]]; then
     if [[ -f ${local_workspace}/${1} ]]; then
         docker_command="/bin/bash -c \"${image_workspace}/$@\""
     else
         docker_command="/bin/bash -c \"$@\""
     fi
-
-    docker_args_interactive=""
 fi
 
 xsock=/tmp/.X11-unix
@@ -63,6 +60,8 @@ eval docker run \
     --rm \
     --privileged \
     --net=host \
+    --interactive \
+    --tty \
     ${docker_args_display} \
     ${docker_args_user} \
     ${docker_args_workdir} \
