@@ -18,14 +18,14 @@ if [[ ${image} == NULL ]]; then
 fi
 
 tag=latest
-local_workspace="${path}/workspace"
-image_workspace="/ws"
+workspace_dirname="workspace"
+local_workspace="${path}/${workspace_dirname}"
+image_workspace="/${workspace_dirname}"
 
 docker_command="/bin/bash"
-translated_path=$(pwd | sed "s|${local_workspace}|${image_workspace}|")
-
 if [[ ${#} -gt 0 ]]; then
     if [[ -f $(pwd)/${1} ]]; then
+        translated_path=$(pwd | sed "s|${path}||")
         docker_command="/bin/bash -c \"${translated_path}/$@\""
     else
         docker_command="/bin/bash -c \"$@\""
