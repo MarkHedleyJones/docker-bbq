@@ -75,6 +75,7 @@ docker run \
     --rm \
     --privileged \
     --net=host \
+    --entrypoint="" \
     ${docker_args_display} \
     ${docker_args_user} \
     ${docker_args_workdir} \
