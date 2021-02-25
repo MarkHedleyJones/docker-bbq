@@ -22,13 +22,13 @@ workspace_dirname="workspace"
 local_workspace="${path}/${workspace_dirname}"
 image_workspace="/${workspace_dirname}"
 
-docker_command="/bin/bash"
+docker_command="/usr/bin/env bash"
 if [[ ${#} -gt 0 ]]; then
     if [[ -f $(pwd)/${1} ]]; then
         translated_path=$(pwd | sed "s|${path}||")
-        docker_command="/bin/bash -c \"${translated_path}/$@\""
+        docker_command="/usr/bin/env bash -c \"${translated_path}/$@\""
     else
-        docker_command="/bin/bash -c \"$@\""
+        docker_command="/usr/bin/env bash -c \"$@\""
     fi
 fi
 
@@ -80,4 +80,4 @@ docker run \
     ${docker_args_user} \
     ${docker_args_workdir} \
     ${image}:${tag} \
-    /bin/bash -c "chown $(id -u):$(id -g) ${image_workspace} -R"
+    /usr/bin/env bash -c "chown $(id -u):$(id -g) ${image_workspace} -R"

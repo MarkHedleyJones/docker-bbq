@@ -20,12 +20,12 @@ fi
 local_workspace="${path}/workspace"
 image_workspace="/ws"
 
-docker_command="/bin/bash"
+docker_command="/usr/bin/env bash"
 if [[ ${#} -gt 0 ]]; then
     if [[ -f ${local_workspace}/${1} ]]; then
-        docker_command="/bin/bash -c \"${image_workspace}/$@\""
+        docker_command="/usr/bin/env bash -c \"${image_workspace}/$@\""
     else
-        docker_command="/bin/bash -c \"$@\""
+        docker_command="/usr/bin/env bash -c \"$@\""
     fi
 fi
 
