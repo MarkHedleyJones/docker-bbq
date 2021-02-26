@@ -88,7 +88,7 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
       /usr/bin/env bash -c "chown $(id -u):$(id -g) ${image_workspace} -R"
 else
   echo "Running in existing container (${image})"
-  docker exec \
+  eval docker exec \
     --interactive \
     --tty \
     ${docker_args_workdir} \
