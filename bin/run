@@ -14,6 +14,9 @@ done
 
 local_path=$(pwd)
 container_path=$(pwd | sed "s|${project_path}||")
+if [[ "${container_path}" == "" ]]; then
+  container_path="/"
+fi
 
 if [[ ${image} == NULL ]]; then
     echo "Couldnt find a Dockerfile this or any parent directory - aborting!"
