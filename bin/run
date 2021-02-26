@@ -79,16 +79,14 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
       ${docker_command}
 
   # Recursively set permissions of workspace folder
+  fix_permission_command="chown --recursive --from=\$(id -u):\$(id -g) "
+  fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
   docker run \
       --rm \
-      --privileged \
-      --net=host \
       --entrypoint="" \
-      ${docker_args_display} \
-      ${docker_args_user} \
-      ${docker_args_workdir} \
+      ${docker_args_mount_workdir} \
       ${image}:${tag} \
-      /usr/bin/env bash -c "chown $(id -u):$(id -g) ${image_workspace} -R"
+      /usr/bin/env bash -c ${fix_permission_command}
 else
   echo "Running in existing container (${image})"
   eval docker exec \
