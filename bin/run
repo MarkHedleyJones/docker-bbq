@@ -86,7 +86,7 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
       --entrypoint="" \
       ${docker_args_mount_workdir} \
       ${image}:${tag} \
-      /usr/bin/env bash -c ${fix_permission_command}
+      /usr/bin/env bash -c "${fix_permission_command}"
 else
   echo "Running in existing container (${image})"
   eval docker exec \
