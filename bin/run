@@ -30,7 +30,7 @@ image_workspace="/${workspace_dirname}"
 
 docker_command="/usr/bin/env bash"
 if [[ ${#} -gt 0 ]]; then
-    docker_command="/usr/bin/env bash -c \"$@\""
+    docker_command="/usr/bin/env bash -cl \"$@\""
 fi
 
 # Setup the user
