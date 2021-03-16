@@ -19,44 +19,62 @@ if [[ "${container_path}" == "" ]]; then
 fi
 
 tag=latest
+local_workspace=""
+image_workspace=""
+docker_args_workdir=""
+docker_args_mount_workdir=""
 
-if [[ ${image} == NULL ]]; then
-    if [[ $# != 1 ]]; then
-        echo "Couldnt find a Dockerfile this or any parent directory - aborting!"
-        exit 1
+# Has the user specified an image to use?
+if [[ $# -ge 2 ]] &&  [[ "${1}" == "--image" ]]; then
+    shift
+    if [[ "${1}" =~ ":" ]]; then
+        parts=(${1//:/ })
+        image=${parts[0]}
+        tag=${parts[1]}
     else
-        if [[ "${1}" =~ ":" ]]; then
-            parts=(${1//:/ })
-            image=${parts[0]}
-            tag=${parts[1]}
-        else
-          image=${1}
-        fi
-        shift
+      image=${1}
     fi
-    workspace_dirname=""
-    local_workspace=""
-    image_workspace=""
-    docker_args_user=""
-    docker_args_workdir=""
-    docker_args_mount_workdir=""
+    shift
+    # Connect to the user's global workspace if it exists
+    if [[ -d "/home/${USER}/workspace" ]]; then
+        workspace_dirname="workspace"
+        local_workspace="/${USER}/${workspace_dirname}"
+        image_workspace="/${workspace_dirname}"
+        docker_args_workdir=""
+        docker_args_mount_workdir=""
+        docker_args_workdir+="--workdir=${image_workspace} "
+    else
+        echo "Could not find a workspace under home directory to link..."
+    fi
+elif [[ ${image} == NULL ]]; then
+    echo "Couldnt find a Dockerfile in this or any parent directory - aborting!"
+    echo ""
+    echo "TIP: You can specify an image using the --image <image name> switch"
+    echo "Example: run --image debian:buster [command]"
+    exit 1
 else
     workspace_dirname="workspace"
     local_workspace="${project_path}/${workspace_dirname}"
-    image_workspace="/${workspace_dirname}"
-    # Setup the workspace
-    if [[ ! -d ${local_workspace} ]]; then
-        mkdir -p ${local_workspace}
+    # If the repository contains a workspace folder, link it into the image
+    if [[ -d ${local_workspace} ]]; then
+      image_workspace="/${workspace_dirname}"
+      if [[ "${container_path}" != "" ]]; then
+          # Allow the user to execute commands with paths as if in the container
+          docker_args_workdir+="--workdir=${container_path} "
+      fi
+    else
+      echo "This repository does not contain a workspace folder - not linking"
     fi
-    # Setup the user
-    docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
+fi
+
+if [[ "${image_workspace}" != "" ]]; then
     # WORKDIR should be set inside the container, but just-in-case, set it again.
     # Allows scripts inside the container to easily locate the workspace
     docker_args_workdir+="--env WORKDIR=${image_workspace} "
+fi
 
-    # Allow the user to execute commands with paths as if they were in the container
-    docker_args_workdir+="--workdir=${container_path} "
+if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
     docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
@@ -83,7 +101,7 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
 
   eval docker run \
       ${docker_args_interactive} \
-      --name ${image} \
+      --name ${image}-${tag} \
       --rm \
       --privileged \
       --net=host \
@@ -96,7 +114,7 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
       ${image}:${tag} \
       ${docker_command}
 
-  if [[ ${workspace_dirname} != "" ]]; then
+  if [[ ${image_workspace} != "" ]]; then
     # Recursively set permissions of workspace folder
     fix_permission_command="chown --recursive --from=\$(id -u):\$(id -g) "
     fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
