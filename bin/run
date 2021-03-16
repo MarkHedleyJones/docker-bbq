@@ -86,18 +86,28 @@ fi
 if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
   echo "Running in new container (${image}:${tag})"
 
-  xsock=/tmp/.X11-unix
-  xauth=/tmp/.docker.xauth
-  touch $xauth
-  xauth nlist ${DISPLAY} | sed -e 's/^..../ffff/' | xauth -f ${xauth} nmerge -
+  docker_args_display=""
+  if [[ ${DISPLAY} ]]; then
+    xsock=/tmp/.X11-unix
+    xauth=/tmp/.docker.xauth
+    touch $xauth
+    xauth nlist ${DISPLAY} | sed -e 's/^..../ffff/' | xauth -f ${xauth} nmerge -
 
-  docker_args_display="-e DISPLAY "
-  docker_args_display+="-e XAUTHORITY=${xauth} "
-  docker_args_display+="-v ${xauth}:${xauth}:rw "
-  docker_args_display+="-v ${xsock}:${xsock}:rw "
-  docker_args_display+="--gpus=all "
-  docker_args_display+="-e NVIDIA_DRIVER_CAPABILITIES=all "
-  docker_args_display+="--env QT_X11_NO_MITSHM=1 "
+    docker_args_display+="-e DISPLAY "
+    docker_args_display+="-e XAUTHORITY=${xauth} "
+    docker_args_display+="-v ${xauth}:${xauth}:rw "
+    docker_args_display+="-v ${xsock}:${xsock}:rw "
+
+    if command -v nvidia-smi > /dev/null; then
+      # Enable Nvidia specific features
+      docker_args_display+="--gpus=all "
+      docker_args_display+="-e NVIDIA_DRIVER_CAPABILITIES=all "
+      docker_args_display+="--env QT_X11_NO_MITSHM=1 "
+    fi
+  fi
+
+  # Setup the user
+  docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
   eval docker run \
       ${docker_args_interactive} \
