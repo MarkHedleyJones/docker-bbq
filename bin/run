@@ -24,6 +24,9 @@ image_workspace=""
 docker_args_workdir=""
 docker_args_mount_workdir=""
 
+# The path to check for contanier specific workspaces
+global_workspace="/home/${USER}/workspaces"
+
 # Has the user specified an image to use?
 if [[ $# -ge 2 ]] &&  [[ "${1}" == "--image" ]]; then
     shift
@@ -31,20 +34,25 @@ if [[ $# -ge 2 ]] &&  [[ "${1}" == "--image" ]]; then
         parts=(${1//:/ })
         image=${parts[0]}
         tag=${parts[1]}
+        # if image=debian tag=stretch then want dirname -> debian-stretch
+        local_workspace_dirname=${image}-${tag}
     else
       image=${1}
+      # a locally created container is likely to have 'latest' tag, but we
+      # don't want to create new workspaces for every tag, so just use ${image}
+      local_workspace_dirname=${image}
     fi
     shift
-    # Connect to the user's global workspace if it exists
-    if [[ -d "/home/${USER}/workspace" ]]; then
+    # Check to see if the user has defined a global workspaces folder
+    if [[ -d ${global_workspace} ]]; then
         workspace_dirname="workspace"
-        local_workspace="/${USER}/${workspace_dirname}"
+        local_workspace=${global_workspace}/${local_workspace_dirname}
         image_workspace="/${workspace_dirname}"
         docker_args_workdir=""
-        docker_args_mount_workdir=""
         docker_args_workdir+="--workdir=${image_workspace} "
+        global_workspace="USED"  # Flag to indicate use of a global workspace
     else
-        echo "Could not find a workspace under home directory to link..."
+        echo "Could not find ~/workspaces folder to use as a global workspace"
     fi
 elif [[ ${image} == NULL ]]; then
     echo "Couldnt find a Dockerfile in this or any parent directory - aborting!"
@@ -53,6 +61,11 @@ elif [[ ${image} == NULL ]]; then
     echo "Example: run --image debian:buster [command]"
     exit 1
 else
+    # Check that an image with this tag exists
+    if [[ "$(docker image list -q ${image})" == "" ]]; then
+      echo "ERROR: Project '${image}' is missing a docker image - aborting!"
+      exit 1
+    fi
     workspace_dirname="workspace"
     local_workspace="${project_path}/${workspace_dirname}"
     # If the repository contains a workspace folder, link it into the image
@@ -75,6 +88,10 @@ if [[ "${image_workspace}" != "" ]]; then
 fi
 
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
+    if [[ "${global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
+      mkdir ${local_workspace}
+      echo "Created global workspace folder at ${local_workspace}"
+    fi
     docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
@@ -83,8 +100,14 @@ if [[ ${#} -gt 0 ]]; then
     docker_command="/usr/bin/env bash -cl \"$@\""
 fi
 
-if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
+container_name=${image}-${tag}
+
+if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
   echo "Running in new container (${image}:${tag})"
+
+  if [[ ${local_workspace} != "" ]]; then
+    echo "Linking ${local_workspace} into ${image}:${image_workspace}"
+  fi
 
   docker_args_display=""
   if [[ ${DISPLAY} ]]; then
@@ -111,7 +134,7 @@ if [[ ! $(docker ps --quiet --filter name=${image}) ]]; then
 
   eval docker run \
       ${docker_args_interactive} \
-      --name ${image}-${tag} \
+      --name ${container_name} \
       --rm \
       --privileged \
       --net=host \
@@ -141,6 +164,6 @@ else
     --interactive \
     --tty \
     ${docker_args_workdir} \
-    ${image} \
+    ${container_name} \
     ${docker_command}
 fi
