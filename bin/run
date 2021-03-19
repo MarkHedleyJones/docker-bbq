@@ -6,13 +6,12 @@ image=NULL
 project_path=$(pwd)
 while [[ ${project_path} != "/" ]]; do
     if [[ -f ${project_path}/Dockerfile ]]; then
-        image=$(basename ${project_path})
+        image=$(basename "${project_path}")
         break
     fi
-    project_path=$(dirname ${project_path})
+    project_path=$(dirname "${project_path}")
 done
 
-local_path=$(pwd)
 container_path=$(pwd | sed "s|${project_path}||")
 if [[ "${container_path}" == "" ]]; then
   container_path="/"
@@ -31,9 +30,8 @@ global_workspace="/home/${USER}/workspaces"
 if [[ $# -ge 2 ]] &&  [[ "${1}" == "--image" ]]; then
     shift
     if [[ "${1}" =~ ":" ]]; then
-        parts=(${1//:/ })
-        image=${parts[0]}
-        tag=${parts[1]}
+        # Split the image into its image-name and tag components
+        IFS=':' read -r image tag <<< "${1}:"
         # if image=debian tag=stretch then want dirname -> debian-stretch
         local_workspace_dirname=${image}-${tag}
     else
@@ -62,7 +60,7 @@ elif [[ ${image} == NULL ]]; then
     exit 1
 else
     # Check that an image with this tag exists
-    if [[ "$(docker image list -q ${image})" == "" ]]; then
+    if [[ "$(docker image list -q "${image}")" == "" ]]; then
       echo "ERROR: Project '${image}' is missing a docker image - aborting!"
       exit 1
     fi
@@ -89,7 +87,7 @@ fi
 
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
     if [[ "${global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
-      mkdir ${local_workspace}
+      mkdir "${local_workspace}"
       echo "Created global workspace folder at ${local_workspace}"
     fi
     docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
@@ -97,12 +95,12 @@ fi
 
 docker_command="/usr/bin/env bash"
 if [[ ${#} -gt 0 ]]; then
-    docker_command="/usr/bin/env bash -cl \"$@\""
+    docker_command="/usr/bin/env bash -cl \"$*\""
 fi
 
 container_name=${image}-${tag}
 
-if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
+if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   echo "Running in new container (${image}:${tag})"
 
   if [[ ${local_workspace} != "" ]]; then
@@ -114,7 +112,7 @@ if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
     xsock=/tmp/.X11-unix
     xauth=/tmp/.docker.xauth
     touch $xauth
-    xauth nlist ${DISPLAY} | sed -e 's/^..../ffff/' | xauth -f ${xauth} nmerge -
+    xauth nlist "${DISPLAY}" | sed -e 's/^..../ffff/' | xauth -f "${xauth}" nmerge -
 
     docker_args_display+="-e DISPLAY "
     docker_args_display+="-e XAUTHORITY=${xauth} "
@@ -132,8 +130,7 @@ if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
   # Setup the user
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
-  eval docker run \
-      ${docker_args_interactive} \
+  eval "docker run \
       --name ${container_name} \
       --rm \
       --privileged \
@@ -145,7 +142,7 @@ if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
       ${docker_args_mount_workdir} \
       ${docker_args_workdir} \
       ${image}:${tag} \
-      ${docker_command}
+      ${docker_command}"
 
   if [[ ${image_workspace} != "" ]]; then
     # Recursively set permissions of workspace folder
@@ -154,8 +151,8 @@ if [[ ! $(docker ps --quiet --filter name=${container_name}) ]]; then
     docker run \
         --rm \
         --entrypoint="" \
-        ${docker_args_mount_workdir} \
-        ${image}:${tag} \
+        "${docker_args_mount_workdir}" \
+        "${image}:${tag}" \
         /usr/bin/env bash -c "${fix_permission_command}"
   fi
 else
@@ -163,7 +160,7 @@ else
   eval docker exec \
     --interactive \
     --tty \
-    ${docker_args_workdir} \
-    ${container_name} \
-    ${docker_command}
+    "${docker_args_workdir}" \
+    "${container_name}" \
+    "${docker_command}"
 fi
