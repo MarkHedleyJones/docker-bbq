@@ -18,10 +18,8 @@ ARG WORKDIR
 WORKDIR $WORKDIR
 
 # Add ROS specific convenience functionality to the created image...
-
 # Build & source the catkin workspace from anywhere by typing 'cm'
 RUN echo """alias cm='cd ${WORKDIR} && catkin_make -j$(nproc) && rospack profile && source devel/setup.bash ; cd - > /dev/null'""" >> /root/.bashrc
-
 # Ensure ros and the workspace environment is sourced even on docker exec
 RUN echo """source /opt/ros/${ROS_DISTRO}/setup.bash""" >> /root/.bashrc
 RUN echo """if [[ -f /workspace/devel/setup.bash ]]; then\n\
