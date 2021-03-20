@@ -149,8 +149,8 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
       --tty \
       ${docker_args_bash_history} \
       ${docker_args_display} \
-      ${docker_args_user} \
       ${docker_args_mount_workdir} \
+      ${docker_args_user} \
       ${docker_args_workdir} \
       ${image}:${tag} \
       ${docker_command}"
