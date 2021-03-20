@@ -16,9 +16,10 @@ usage() {
     error "$1"
   fi
   cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-t] name template
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-t] name [template]
 
   Create a new docker-pattern repository from one of the built-in templates.
+  If not template is specified, the default template will be used.
 
 OPTIONS:
 
@@ -61,10 +62,13 @@ parse_params() {
   args=("$@")
 
   # check required arguments
-  [[ ${#args[@]} -eq 0 ]] && usage "Missing required arguments (name, template)"
-  [[ ${#args[@]} -eq 1 ]] && usage "Missing required argument (template)"
+  [[ ${#args[@]} -eq 0 ]] && usage "Missing required arguments (name)"
   repo_name=${args[0]}
-  template=${args[1]}
+  if [[ ${#args[@]} -eq 2 ]]; then
+    template=${args[1]}
+  else
+    template="default"
+  fi
   return 0
 }
 
