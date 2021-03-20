@@ -2,10 +2,7 @@
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-scripts=(
-  run
-  stop
-)
+scripts=("$(ls -1A "bin")")
 paths_to_try=(
   /home/${USER}/.local/bin
   /home/${USER}/bin
