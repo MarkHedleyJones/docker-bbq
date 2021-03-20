@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+set -eu
+
+path_base="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" &>/dev/null && pwd -P)"
+path_templates="${path_base}/repository_templates"
+
+error() {
+  if [[ $# -eq 1 ]]; then
+    echo -e "\033[0;31m$1\033[0m"
+  fi
+}
+
+usage() {
+  if [[ $# -eq 1 ]]; then
+    error "$1"
+  fi
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-t] name template
+
+  Create a new docker-pattern repository from one of the built-in templates.
+
+OPTIONS:
+
+  -h, --help      Print this help and exit
+  -l, --list      Print a list of the available templates and exit
+
+EXAMPLES:
+
+  $(basename "${BASH_SOURCE[0]}") ros-desktop-noetic ros
+
+  Create a repository called 'ros-desktop-noetic' in the current directory based
+  on the 'ros' template.
+
+EOF
+  exit
+}
+
+msg() {
+  echo >&2 -e "${1-}"
+}
+
+list_templates() {
+ echo "The following templates are available:"
+ ls -1A "${path_templates}"
+ exit
+}
+
+parse_params() {
+
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -l | --list) list_templates ;;
+    -?*) die "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  args=("$@")
+
+  # check required arguments
+  [[ ${#args[@]} -eq 0 ]] && usage "Missing required arguments (name, template)"
+  [[ ${#args[@]} -eq 1 ]] && usage "Missing required argument (template)"
+  repo_name=${args[0]}
+  template=${args[1]}
+  return 0
+}
+
+parse_params "$@"
+if [[ -d ${repo_name} ]]; then
+  error "The directory '${repo_name}' already exists - aborting!"
+  exit 1
+fi
+cp -r "${path_templates}/${template}" "${repo_name}"
+echo "Created repository '${repo_name}' based on the '${template}' template"
