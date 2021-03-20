@@ -17,9 +17,6 @@ ARG WORKDIR
 
 WORKDIR $WORKDIR
 
-# Enable bash history inside this container
-ENV HISTFILE=$WORKDIR/.bash_history
-
 # Add ROS specific convenience functionality to the created image...
 
 # Build & source the catkin workspace from anywhere by typing 'cm'

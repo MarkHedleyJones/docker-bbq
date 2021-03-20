@@ -16,6 +16,3 @@ ARG WORKDIR
 # Run any configuration or build tasks here
 
 WORKDIR $WORKDIR
-
-# Enable bash history inside this container
-ENV HISTFILE=$WORKDIR/.bash_history
