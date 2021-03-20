@@ -3,23 +3,24 @@
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 scripts=("$(ls -1A "bin")")
+
 paths_to_try=(
-  /home/${USER}/.local/bin
-  /home/${USER}/bin
+  "/home/${USER}/.local/bin"
+  "/home/${USER}/bin"
 )
 
-for path in ${paths_to_try[@]}; do
+for path in ${paths_to_try[*]}; do
   echo "Checking for local binary path at ${path} ... "
   if [[ -d ${path} ]]; then
-    for script in ${scripts[@]}; do
+    for script in ${scripts[*]}; do
       if [[ -f ${path}/${script} ]]; then
         echo "The '${script}' script is already exists at this location"
       else
-        ln -s ${script_dir}/bin/${script} ${path}/${script}
+        ln -s "${script_dir}/bin/${script}" "${path}/${script}"
         echo "Created link to '${script}'"
       fi
     done
-    test=$(export | grep $PATH | grep ${path} > /dev/null)
+    test=$(export | grep \$PATH | grep "${path}" > /dev/null)
     if [[ ${test} -ne 0 ]]; then
       echo "The installed path (${path}) does not appear in you \$PATH environment variable"
       echo "Please include the followng line in your shell's startup script (e.g. .bashrc, .zshrc)"
@@ -27,7 +28,7 @@ for path in ${paths_to_try[@]}; do
     fi
     echo ""
     echo "The helper scripts can be uninstalled by running:"
-    for script in ${scripts[@]}; do
+    for script in ${scripts[*]}; do
       echo "rm ${path}/${script}"
     done
     echo ""
