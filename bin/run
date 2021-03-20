@@ -22,6 +22,7 @@ local_workspace=""
 image_workspace=""
 docker_args_workdir=""
 docker_args_mount_workdir=""
+docker_args_bash_history=""
 
 # The path to check for contanier specific workspaces
 global_workspace="/home/${USER}/workspaces"
@@ -79,11 +80,21 @@ else
 
 fi
 
+container_name=${image}-${tag}
+
 if [[ "${image_workspace}" != "" ]]; then
     # WORKDIR should be set inside the container, but just-in-case, set it again.
     # Allows scripts inside the container to easily locate the workspace
     docker_args_workdir+="--env WORKDIR=${image_workspace} "
 fi
+
+# Setup a local bash_history file to link into the container
+bash_history_path="/tmp/.bash_history_${container_name}"
+if [[ ! -f "${bash_history_path}" ]]; then
+  # Touch file to so docker wont create it as a dir with root permissions
+  touch "${bash_history_path}"
+fi
+docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
 
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
     if [[ "${global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
@@ -98,7 +109,6 @@ if [[ ${#} -gt 0 ]]; then
     docker_command="/usr/bin/env bash -cl \"$*\""
 fi
 
-container_name=${image}-${tag}
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   echo "Running in new container (${image}:${tag})"
@@ -137,6 +147,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
       --net=host \
       --interactive \
       --tty \
+      ${docker_args_bash_history} \
       ${docker_args_display} \
       ${docker_args_user} \
       ${docker_args_mount_workdir} \
