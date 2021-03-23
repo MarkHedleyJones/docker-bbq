@@ -16,3 +16,9 @@ ARG WORKDIR
 # Run any configuration or build tasks here
 
 WORKDIR $WORKDIR
+
+# Convenience function to set ownership of paths within workspace to host user
+RUN echo """#!/usr/bin/env bash\n\
+chown --recursive --from=\$(id -u):\$(id -g) $(id -u):$(id -g) ${WORKDIR}\n\
+""" > /usr/local/bin/fix-permissions \
+    && chmod +x /usr/local/bin/fix-permissions
