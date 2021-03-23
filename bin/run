@@ -1,91 +1,220 @@
 #!/usr/bin/env bash
 
-image=NULL
-
-# Locate Dockerfile to determine image name
-project_path=$(pwd)
-while [[ ${project_path} != "/" ]]; do
-    if [[ -f ${project_path}/Dockerfile ]]; then
-        image=$(basename "${project_path}")
-        break
-    fi
-    project_path=$(dirname "${project_path}")
-done
-
-container_path=$(pwd | sed "s|${project_path}||")
-if [[ "${container_path}" == "" ]]; then
-  container_path="/"
-fi
-
-tag=latest
-local_workspace=""
-image_workspace=""
-docker_args_workdir=""
-docker_args_mount_workdir=""
-docker_args_bash_history=""
+TESTING="${TESTING:=False}"
 
 # The path to check for contanier specific workspaces
-global_workspace="/home/${USER}/workspaces"
+path_global_workspace="/home/${USER}/workspaces"
+dirname_workspace="workspace"
 
-# Has the user specified an image to use?
-if [[ $# -ge 2 ]] &&  [[ "${1}" == "--image" ]]; then
-    shift
-    if [[ "${1}" =~ ":" ]]; then
-        # Split the image into its image-name and tag components
-        IFS=':' read -r image tag <<< "${1}:"
-        # if image=debian tag=stretch then want dirname -> debian-stretch
-        local_workspace_dirname=${image}-${tag}
-    else
-      image=${1}
-      # a locally created container is likely to have 'latest' tag, but we
-      # don't want to create new workspaces for every tag, so just use ${image}
-      local_workspace_dirname=${image}
+testing() {
+  if [[ "${TESTING}" != "False" ]]; then
+    if [[ $# -eq 2 ]]; then
+      echo "$1=$2"
+    elif [[ $# -eq 1 ]]; then
+      echo "$1"
     fi
-    shift
-    # Check to see if the user has defined a global workspaces folder
-    if [[ -d ${global_workspace} ]]; then
-        workspace_dirname="workspace"
-        local_workspace=${global_workspace}/${local_workspace_dirname}
-        image_workspace="/${workspace_dirname}"
-        docker_args_workdir=""
-        docker_args_workdir+="--workdir=${image_workspace} "
-        global_workspace="USED"  # Flag to indicate use of a global workspace
-    else
-        echo "Could not find ~/workspaces folder to use as a global workspace"
+  fi
+}
+
+absolute_path() {
+  echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
+}
+
+find_repo_name() {
+  # Crawl up tree to find Docker file, in order to find directory/repo name
+  image=NULL
+  repository_path="$(absolute_path "$1")"
+  while [[ ${repository_path} != "/" ]]; do
+    if [[ -f "${repository_path}/Dockerfile" ]]; then
+      image=$(basename "${repository_path}")
+      return 0
     fi
-elif [[ ${image} == NULL ]]; then
-    echo "Couldnt find a Dockerfile in this or any parent directory - aborting!"
-    echo ""
-    echo "TIP: You can specify an image using the --image <image name> switch"
-    echo "Example: run --image debian:buster [command]"
-    exit 1
+    repository_path=$(dirname "${repository_path}")
+  done
+  repository_path=NULL
+  return 1
+}
+
+get_docker_images() {
+  docker_images_clean=($(docker image list --format "{{.Repository}}" --filter=reference='*:latest'))
+  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false))
+}
+
+list_docker_images() {
+  get_docker_images
+  for image in "${docker_images_clean[@]}"; do
+    echo "${image}"
+  done
+  exit 0
+}
+
+parse_image_and_tag_input() {
+  if [[ $# -ne 1 ]]; then
+    input_image=NULL
+    input_tag=NULL
+  elif [[ "${1}" =~ ":" ]]; then
+    # Split the image into its image and tag components
+    IFS=':' read -r input_image input_tag <<< "${1}:"
+  else
+    input_image="${1}"
+    input_tag="latest"
+  fi
+  testing "user_image" "${input_image}"
+  testing "user_tag" "${input_tag}"
+}
+
+set_container_name() {
+  # Controls the format of container names
+  if [[ $# -ne 2 ]]; then
+    error "Error naming container"
+  fi
+  container_name="${1}-${2}"
+}
+
+set_workspace_path() {
+  # Controls the format of container names
+  if [[ $# -ne 1 ]]; then
+    error "Error setting workspace paths"
+  fi
+  local_workspace="${1}"
+  image_workspace="/${dirname_workspace}"
+}
+
+error() {
+  # Print the error, in red, then exit
+  if [[ $# -eq 1 ]]; then
+    echo -e "\033[0;31m$1\033[0m"
+  fi
+  exit 1
+}
+
+usage() {
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [image-source] [command]
+
+  Enter a docker container and optionally execute a command. If no command is
+  given, drop into an interactive bash shell.
+
+  The image-source will be determined the following checks:
+  1. Check to see if the user is currently in a docker-workflow repository.
+  2. Check to see if the first argument is a path to docker-workflow repository.
+  3. Check to see if the first argument is a path inside a docker-workflow repository.
+  4. Check to see if the first argument is the name of an available local image.
+  5. Assume the first argument is the name of an image on docker-hub
+
+  Once the image-source is decided, check if the image is already running.
+  If so, reuse the existing image. If not, start a new image using docker run.
+
+OPTIONS:
+
+  -h, --help      Print this help and exit
+  -l, --list      Print the list of docker images and exit
+
+EXAMPLES:
+
+  $(basename "${BASH_SOURCE[0]}") ~/repos/debian-buster-slim
+
+  Drop into the bash shell of a docker-workflow repository at specified path.
+EOF
+  exit
+}
+
+parse_params() {
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -l | --list) list_docker_images ;;
+    -?*) error "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  args=("$@")
+  return 0
+}
+
+parse_params "$@"
+find_repo_name "$(pwd)"
+testing "image-from-working-dir" "${image}"
+
+container_workdir="/${dirname_workspace}"
+command=""
+
+if [[ "${image}" != "NULL" ]]; then
+  # We are inside a docker-workflow repository
+  set_container_name "${image}" "${tag}"
+  set_workspace_path "${repository_path}/${dirname_workspace}"
+  container_workdir="$(pwd | sed "s|${repository_path}||")"
 else
-    # Check that an image with this tag exists
-    if [[ "$(docker image list -q "${image}")" == "" ]]; then
-      echo "ERROR: Project '${image}' is missing a docker image - aborting!"
-      exit 1
-    fi
-    workspace_dirname="workspace"
-    local_workspace="${project_path}/${workspace_dirname}"
-    # If the repository contains a workspace folder, link it into the image
-    if [[ -d ${local_workspace} ]]; then
-      image_workspace="/${workspace_dirname}"
-      if [[ "${container_path}" != "" ]]; then
-          # Allow the user to execute commands with paths as if in the container
-          docker_args_workdir+="--workdir=${container_path} "
+  if [[ $# -eq 0 ]]; then
+    error "Could not find a docker-workflow repository in this working tree"
+  elif [[ -d "$1" ]] || [[ -f "$1" ]]; then
+    # The user passed a path
+    find_repo_name "$1"
+    if [[ "${image}" != "NULL" ]]; then
+      tag="latest"
+      set_container_name "${image}" "${tag}"
+      set_workspace_path "${repository_path}/${dirname_workspace}"
+      if [[ -f "$1" ]]; then
+        # User has specified a specifc file,  so execute that
+        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/||")"
+      elif [[ -d "$1" ]]; then
+        container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
       fi
+      # Remove the processed argument ($1) as it has been processed
+      shift
     else
-      echo "This repository does not contain a workspace folder - not linking"
+      error "Could not find a docker-workflow repository at (or above) $1"
     fi
-
+  else
+    get_docker_images
+    parse_image_and_tag_input "${1}"
+    shift
+    if [[ " ${docker_images_full[*]} " =~ " ${input_image}:${input_tag} " ]]; then
+      image=${input_image}
+      tag=${input_tag}
+      set_container_name "${image}" "${tag}"
+      set_workspace_path "${path_global_workspace}/${image}"
+    else
+      if [[ "${input_image}" =~ "/" ]]; then
+        IFS='/' read -r -a parts <<< "${input_image}/"
+        if [[ " ${docker_images_full[*]} " =~ " ${parts[0]}:latest " ]]; then
+          image=${parts[0]}
+          tag="latest"
+          set_container_name "${image}" "${tag}"
+          set_workspace_path "${path_global_workspace}/${image}"
+        else
+          error "Could not find the docker image ${input_image}:${input_tag}"
+        fi
+      else
+        error "Could not find the docker image ${input_image}:${input_tag}"
+      fi
+    fi
+  fi
 fi
 
-container_name=${image}-${tag}
+# Collect the remaining arguments as the command
+if [[ $# -gt 0 ]]; then
+  if [[ "${command}" != "" ]]; then
+    command+=" "
+  fi
+  command+="$*"
+fi
 
+testing "image" "${image}"
+testing "tag" "${tag}"
+testing "container_name" "${container_name}"
+testing "local_workspace" "${local_workspace}"
+testing "image_workspace" "${image_workspace}"
+testing "container_workdir" "${container_workdir}"
+testing "command" "${command}"
+
+docker_args_workdir+="--workdir=${container_workdir} "
 if [[ "${image_workspace}" != "" ]]; then
-    # WORKDIR should be set inside the container, but just-in-case, set it again.
-    # Allows scripts inside the container to easily locate the workspace
-    docker_args_workdir+="--env WORKDIR=${image_workspace} "
+  # WORKDIR should be set inside the container, but just-in-case, set it again.
+  # Allows scripts inside the container to easily locate the workspace
+  docker_args_workdir+="--env WORKDIR=/${dirname_workspace} "
 fi
 
 # Setup a local bash_history file to link into the container
@@ -96,19 +225,19 @@ if [[ ! -f "${bash_history_path}" ]]; then
 fi
 docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
 
+docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
-    if [[ "${global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
-      mkdir "${local_workspace}"
-      echo "Created global workspace folder at ${local_workspace}"
-    fi
-    docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
+  if [[ "${path_global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
+    mkdir "${local_workspace}"
+    echo "Created global workspace folder at ${local_workspace}"
+  fi
+  docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
 docker_command="/usr/bin/env bash"
-if [[ ${#} -gt 0 ]]; then
-    docker_command="/usr/bin/env bash -cl \"$*\""
+if [[ "${command}" != "" ]]; then
+  docker_command="/usr/bin/env bash -cl \"${command}\""
 fi
-
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   echo "Running in new container (${image}:${tag})"
@@ -141,19 +270,19 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
   eval "docker run \
-      --name ${container_name} \
-      --rm \
-      --privileged \
-      --net=host \
-      --interactive \
-      --tty \
-      ${docker_args_bash_history} \
-      ${docker_args_display} \
-      ${docker_args_mount_workdir} \
-      ${docker_args_user} \
-      ${docker_args_workdir} \
-      ${image}:${tag} \
-      ${docker_command}"
+    --name ${container_name} \
+    --rm \
+    --privileged \
+    --net=host \
+    --interactive \
+    --tty \
+    ${docker_args_bash_history} \
+    ${docker_args_display} \
+    ${docker_args_mount_workdir} \
+    ${docker_args_user} \
+    ${docker_args_workdir} \
+    ${image}:${tag} \
+    ${docker_command}"
 
   if [[ ${image_workspace} != "" ]]; then
     # Recursively set permissions of workspace folder
@@ -161,11 +290,11 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
 
     eval "docker run \
-        --rm \
-        --entrypoint="" \
-        ${docker_args_mount_workdir} \
-        ${image}:${tag} \
-        /usr/bin/env bash -c '${fix_permission_command}'"
+      --rm \
+      --entrypoint="" \
+      ${docker_args_mount_workdir} \
+      ${image}:${tag} \
+      /usr/bin/env bash -c '${fix_permission_command}'"
   fi
 else
   echo "Running in existing container (${image}:${tag})"
