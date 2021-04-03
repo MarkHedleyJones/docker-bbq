@@ -13,9 +13,14 @@ run_test() {
   else
     echo -e "\e[31mFAILED\e[0m"
     echo ""
-    echo "Command: run $@"
-    echo "Error:"
+    echo -e "\e[33mERROR MESSAGE:\e[0m"
     cat "${path_test_repo}"/log.txt
+    echo ""
+    echo -e "\e[33mFAILING COMMAND:\e[0m"
+    echo "run $@"
+    echo ""
+    echo -e "\e[33mDEBUG ENABLED EXECUTION:\e[0m"
+    TESTING=1 "${path_run}"/run "$@"
     exit 1
   fi
 }
@@ -33,7 +38,7 @@ fi
 # Test definitions
 ########################
 
-echo "Running path resolution tests"
+echo "Running path resolution tests:"
 
 # Setup by moving to a location
 # Then run the test by passing a name and expected command
@@ -46,3 +51,5 @@ run_test "inside repo, inside workspace" ./target.sh
 
 cd "${path_test}" || exit 1
 run_test "outside repo" "${path_test_repo}"/workspace/target.sh
+
+echo "All tests passed"
