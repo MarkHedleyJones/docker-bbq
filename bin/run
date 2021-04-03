@@ -169,8 +169,8 @@ else
       set_workspace_path "${repository_path}/${dirname_workspace}"
       if [[ -f "$1" ]]; then
         # User has specified a specifc file,  so execute that
-        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/||")"
         testing "target argument is a file"
+        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
       elif [[ -d "$1" ]]; then
         testing "target argument is a directory"
         container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
