@@ -9,9 +9,9 @@ run_test() {
   shift
   "${path_run}"/run "$@" > "${path_test_repo}"/log.txt
   if [[ "$(cat "${path_test_repo}/log.txt" | xargs)" =~ "SUCCESS" ]]; then
-    echo "SUCCESS"
+    echo -e "\e[32mSUCCESS\e[0m"
   else
-    echo "FAILED"
+    echo -e "\e[31mFAILED\e[0m"
     echo ""
     echo "Command: run $@"
     echo "Error:"
