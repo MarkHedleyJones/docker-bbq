@@ -3,6 +3,10 @@
 path_run=NULL
 
 run_test() {
+  printf " - "
+  printf "%-16s" "${1}"
+  printf " ... "
+  shift
   "${path_run}"/run "$@" > "${path_test_repo}"/log.txt
   if [[ "$(cat "${path_test_repo}/log.txt" | xargs)" =~ "SUCCESS" ]]; then
     echo "SUCCESS"
@@ -28,15 +32,10 @@ fi
 echo "Running path resolution tests"
 
 cd "${path_test_repo}" || exit 1
-printf " - inside repo       ... "
-run_test workspace/target.sh
-
+run_test "inside repo" workspace/target.sh
 
 cd "${path_test_repo}/workspace" || exit 1
-printf " - inside workspace  ... "
-run_test ./target.sh
-
+run_test "inside workspace" ./target.sh
 
 cd "${path_test}" || exit 1
-printf " - outside repo      ... "
-run_test "${path_test_repo}"/workspace/target.sh
+run_test "outside repo" "${path_test_repo}"/workspace/target.sh
