@@ -4,7 +4,7 @@ path_run=NULL
 
 run_test() {
   printf " - "
-  printf "%-16s" "${1}"
+  printf "%-30s" "${1}"
   printf " ... "
   shift
   "${path_run}"/run "$@" > "${path_test_repo}"/log.txt
@@ -39,10 +39,10 @@ echo "Running path resolution tests"
 # Then run the test by passing a name and expected command
 
 cd "${path_test_repo}" || exit 1
-run_test "inside repo" workspace/target.sh
+run_test "inside repo, outside workspace" workspace/target.sh
 
 cd "${path_test_repo}/workspace" || exit 1
-run_test "inside workspace" ./target.sh
+run_test "inside repo, inside workspace" ./target.sh
 
 cd "${path_test}" || exit 1
 run_test "outside repo" "${path_test_repo}"/workspace/target.sh
