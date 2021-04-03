@@ -103,9 +103,9 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [image-source] [command]
   given, drop into an interactive bash shell.
 
   The image-source will be determined the following checks:
-  1. Check to see if the user is currently in a docker-workflow repository.
-  2. Check to see if the first argument is a path to docker-workflow repository.
-  3. Check to see if the first argument is a path inside a docker-workflow repository.
+  1. Check to see if the user is currently in a docker-flow repository.
+  2. Check to see if the first argument is a path to docker-flow repository.
+  3. Check to see if the first argument is a path inside a docker-flow repository.
   4. Check to see if the first argument is the name of an available local image.
   5. Assume the first argument is the name of an image on docker-hub
 
@@ -121,7 +121,7 @@ EXAMPLES:
 
   $(basename "${BASH_SOURCE[0]}") ~/repos/debian-buster-slim
 
-  Drop into the bash shell of a docker-workflow repository at specified path.
+  Drop into the bash shell of a docker-flow repository at specified path.
 EOF
   exit
 }
@@ -149,7 +149,7 @@ container_workdir="/${dirname_workspace}"
 command=""
 
 if [[ "${image}" != "NULL" ]]; then
-  # We are inside a docker-workflow repository
+  # We are inside a docker-flow repository
   tag="latest"
   set_container_name "${image}" "${tag}"
   set_workspace_path "${repository_path}/${dirname_workspace}"
@@ -159,7 +159,7 @@ if [[ "${image}" != "NULL" ]]; then
   fi
 else
   if [[ $# -eq 0 ]]; then
-    error "Could not find a docker-workflow repository in this working tree"
+    error "Could not find a docker-flow repository in this working tree"
   elif [[ -d "$1" ]] || [[ -f "$1" ]]; then
     # The user passed a path
     find_repo_name "$1"
@@ -176,7 +176,7 @@ else
       # Remove the processed argument ($1) as it has been processed
       shift
     else
-      error "Could not find a docker-workflow repository at (or above) $1"
+      error "Could not find a docker-flow repository at (or above) $1"
     fi
   else
     get_docker_images
