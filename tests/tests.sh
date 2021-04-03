@@ -29,7 +29,14 @@ else
   echo "This file should be run by the 'run_tests.sh' script."
 fi
 
+########################
+# Test definitions
+########################
+
 echo "Running path resolution tests"
+
+# Setup by moving to a location
+# Then run the test by passing a name and expected command
 
 cd "${path_test_repo}" || exit 1
 run_test "inside repo" workspace/target.sh
