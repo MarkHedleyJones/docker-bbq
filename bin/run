@@ -185,10 +185,11 @@ else
     parse_image_and_tag_input "${1}"
     shift
     if [[ " ${docker_images_full[*]} " =~ " ${input_image}:${input_tag} " ]]; then
+      testing "target argument was found in docker image list"
       image=${input_image}
       tag=${input_tag}
       set_container_name "${image}" "${tag}"
-      set_workspace_path "${path_global_workspace}/${image}"
+      container_workdir="/"
     else
       if [[ "${input_image}" =~ "/" ]]; then
         IFS='/' read -r -a parts <<< "${input_image}/"
