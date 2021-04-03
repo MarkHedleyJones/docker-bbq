@@ -5,6 +5,7 @@ TESTING="${TESTING:=False}"
 # The path to check for contanier specific workspaces
 path_global_workspace="/home/${USER}/workspaces"
 dirname_workspace="workspace"
+verbosity=0
 
 testing() {
   if [[ "${TESTING}" != "False" ]]; then
@@ -13,6 +14,12 @@ testing() {
     elif [[ $# -eq 1 ]]; then
       echo "$1"
     fi
+  fi
+}
+
+info() {
+  if [[ "${verbosity}" != "0" ]]; then
+    echo "$@"
   fi
 }
 
@@ -124,6 +131,7 @@ parse_params() {
     case "${1-}" in
     -h | --help) usage ;;
     -l | --list) list_docker_images ;;
+    -v | --verbose) verbosity=1 ;;
     -?*) error "Unknown option: $1" ;;
     *) break ;;
     esac
@@ -146,6 +154,9 @@ if [[ "${image}" != "NULL" ]]; then
   set_container_name "${image}" "${tag}"
   set_workspace_path "${repository_path}/${dirname_workspace}"
   container_workdir="$(pwd | sed "s|${repository_path}||")"
+  if [[ ${container_workdir} = "" ]]; then
+    container_workdir="/"
+  fi
 else
   if [[ $# -eq 0 ]]; then
     error "Could not find a docker-workflow repository in this working tree"
@@ -229,7 +240,7 @@ docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
   if [[ "${path_global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
     mkdir "${local_workspace}"
-    echo "Created global workspace folder at ${local_workspace}"
+    info "Created global workspace folder at ${local_workspace}"
   fi
   docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
@@ -240,10 +251,10 @@ if [[ "${command}" != "" ]]; then
 fi
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
-  echo "Running in new container (${image}:${tag})"
+  info "Running in new container (${image}:${tag})"
 
   if [[ ${local_workspace} != "" ]]; then
-    echo "Linking ${local_workspace} into ${image}:${image_workspace}"
+    info "Linking ${local_workspace} into ${image}:${image_workspace}"
   fi
 
   docker_args_display=""
@@ -297,7 +308,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
       /usr/bin/env bash -c '${fix_permission_command}'"
   fi
 else
-  echo "Running in existing container (${image}:${tag})"
+  info "Running in existing container (${image}:${tag})"
   eval docker exec \
     --interactive \
     --tty \
