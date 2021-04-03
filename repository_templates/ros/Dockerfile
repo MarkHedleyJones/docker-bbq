@@ -5,10 +5,16 @@ FROM $BASE_IMAGE AS base
 ARG WORKDIR
 
 # Install required packages for this project
-# RUN apt-get update \
-#   && apt-get install --yes --no-install-recommends \
-#     ... \
-#   && echo "Workspace package(s) installed."
+COPY packagelist /
+RUN packagelist="$(cat /packagelist | xargs)" && \
+if [ "${packagelist}" != "" ] ; then \
+    apt-get update \
+    && apt-get install --yes --no-install-recommends "${packagelist}" \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "Workspace package(s) installed" ; \
+else \
+    echo "Packagelist is empty" ; \
+fi
 
 # Run any configuration or build tasks here
 

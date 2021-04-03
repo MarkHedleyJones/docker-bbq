@@ -11,8 +11,14 @@ WORKDIR    := /workspace
 
 .PHONY: post-build
 post-build: build
-  # Add your post-build stages here
-	@echo "No post-build stages, build competed!"
+	# Determine list of packages required for catkin workspace
+	docker run \
+		-v $(CURDIR)/workspace:$(WORKDIR) \
+		--workdir=$(WORKDIR) \
+	  $(BASE_IMAGE) \
+	  /bin/bash -c "rosdep install --simulate --from-paths src --ignore-src -y" \
+	  | awk '{if(NR>1)print}' | cut -d ' ' -f 6 \
+	  > $(CURDIR)/packagelist
 
 .PHONY: build
 build: pre-build
