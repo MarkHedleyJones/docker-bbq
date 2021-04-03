@@ -142,6 +142,7 @@ command=""
 
 if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-workflow repository
+  tag="latest"
   set_container_name "${image}" "${tag}"
   set_workspace_path "${repository_path}/${dirname_workspace}"
   container_workdir="$(pwd | sed "s|${repository_path}||")"
