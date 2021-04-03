@@ -25,3 +25,10 @@ RUN echo """#!/usr/bin/env bash\n\
 chown --recursive --from=\$(id -u):\$(id -g) $(id -u):$(id -g) ${WORKDIR}\n\
 """ > /usr/local/bin/fix-permissions \
     && chmod +x /usr/local/bin/fix-permissions
+
+
+#######################
+# PRODUCTION TARGET
+#######################
+FROM base AS production
+COPY workspace $WORKDIR

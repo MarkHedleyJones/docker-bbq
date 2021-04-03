@@ -34,3 +34,12 @@ RUN echo """source /opt/ros/${ROS_DISTRO}/setup.bash""" >> /root/.bashrc
 RUN echo """if [[ -f /workspace/devel/setup.bash ]]; then\n\
 source /workspace/devel/setup.bash\n\
 fi""" >> /root/.bashrc
+
+
+#######################
+# PRODUCTION TARGET
+#######################
+FROM base AS production
+COPY workspace $WORKDIR
+RUN catkin_make install -j $(nproc) --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    && rm -rf devel install

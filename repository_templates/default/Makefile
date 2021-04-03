@@ -7,14 +7,21 @@ BASE_IMAGE ?= debian:buster-slim
 
 WORKDIR    := /workspace
 
-.PHONY: post-build
-post-build: build
-  # Add your post-build stages here
-	@echo "No post-build stages, build competed!"
-
+# A standard build does not include the workspace - for development
 .PHONY: build
 build: pre-build
 	docker build \
+		--target base \
+		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
+		--build-arg WORKDIR=$(WORKDIR) \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.
+
+# A production build includes the workspace in the final image
+.PHONY: production
+production: pre-build
+	docker build \
+		--target production \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
