@@ -170,7 +170,9 @@ else
       if [[ -f "$1" ]]; then
         # User has specified a specifc file,  so execute that
         command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/||")"
+        testing "target argument is a file"
       elif [[ -d "$1" ]]; then
+        testing "target argument is a directory"
         container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
       fi
       # Remove the processed argument ($1) as it has been processed
