@@ -50,6 +50,9 @@ cd "${path_test_repo}/workspace" || exit 1
 run_test "inside repo, inside workspace" ./target.sh
 
 cd "${path_test}" || exit 1
-run_test "outside repo" "${path_test_repo}"/workspace/target.sh
+run_test "outside repo, single command" "${path_test_repo}"/workspace/target.sh
+
+cd "${path_test}" || exit 1
+run_test "outside repo, split command" "${path_test_repo}" /workspace/target.sh
 
 echo "All tests passed"
