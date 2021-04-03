@@ -4,9 +4,8 @@ IMAGE_TAG  := latest
 
 ROS_DISTRO ?= noetic
 
-# By defining your base image here, you can re-use it in pre/post build stages.
-BASE_REPO  ?= osrf/ros
-BASE_TAG   ?= $(ROS_DISTRO)-desktop-full
+# Defining the base image lets you re-use it in other build stages
+BASE_IMAGE ?= osrf/ros:$(ROS_DISTRO)-desktop-full
 
 WORKDIR    := /workspace
 
@@ -18,10 +17,10 @@ post-build: build
 .PHONY: build
 build: pre-build
 	docker build \
-		--build-arg BASE_REPO=$(BASE_REPO) \
-		--build-arg BASE_TAG=$(BASE_TAG) \
+		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg WORKDIR=$(WORKDIR) \
-		-t $(IMAGE_NAME):$(IMAGE_TAG) .
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.
 
 .PHONY: pre-build
 pre-build:

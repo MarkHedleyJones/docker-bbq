@@ -1,8 +1,5 @@
-ARG BASE_REPO
-ARG BASE_TAG
-
-# The base image is passed in from the Makefile
-FROM $BASE_REPO:$BASE_TAG
+ARG BASE_IMAGE
+FROM $BASE_IMAGE AS base
 
 # Allow the workspace variable to be used during build
 ARG WORKDIR
