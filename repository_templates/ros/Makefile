@@ -13,6 +13,7 @@ WORKDIR    := /workspace
 .PHONY: build
 build: pre-build
 	docker build \
+		--target base \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
