@@ -1,0 +1,10 @@
+# A production build includes the workspace in the final image
+.PHONY: production
+production: pre-build
+	docker build \
+		--target production \
+		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
+		--build-arg PRODUCTION=1 \
+		--build-arg WORKDIR=$(WORKDIR) \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.

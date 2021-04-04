@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+path_base="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" &>/dev/null && pwd -P)"
+path_templates="${path_base}/templates"
+path_repositories="${path_templates}/repositories"
+repositories=($(ls "${path_repositories}"))
+
+usage() {
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") type name
+
+  Create a templated docker repository based on the given type
+
+OPTIONS:
+
+  -h, --help      Print this help and exit
+  -l, --list      Print the list of supported repositories
+
+EXAMPLES:
+
+  $(basename "${BASH_SOURCE[0]}") debian my_project
+
+  Creates a new docker-flow repository named 'my_project' based on the default
+  debian image (debian:buster-slim)
+
+EOF
+  exit
+}
+
+check_supported() {
+  if [[ ! " ${repositories[*]} " =~ " $1 " ]]; then
+    echo "Sorry, there is no template for $1"
+    echo "How about starting with one of these templates:"
+    for available_repo in ${repositories[*]}; do
+      echo " ${available_repo}"
+    done
+    exit
+  fi
+}
+
+if [[ $# -eq 0 ]]; then
+  usage
+fi
+
+repository="$1"
+
+check_supported "${repository}"
+
+if [[ $# -eq 1 ]]; then
+  echo "Please specify a name for the repository!"
+fi
+
+repo_name="$2"
+
+# Load the components (contains arrays to use eval)
+eval "$(cat "${path_repositories}/${repository}/default.sh")"
+
+mkdir "${repo_name}"
+
+# Generate the dockerfile from the components listed in the template
+dockerfile=""
+for component in ${dockerfile_componets[*]}; do
+  if [[ " ${component} " =~ "/" ]]; then
+    dockerfile+="$(cat "${path_repositories}/${component}")"
+  else
+    dockerfile+="$(cat "${path_templates}/components/dockerfile/${component}")"
+  fi
+  dockerfile+=$'\n\n'
+done
+echo "${dockerfile}" | head -c -1 > "${repo_name}/Dockerfile"
+
+# Generate the makefile from the components listed in the template
+makefile=""
+for component in ${makefile_componets[*]}; do
+  if [[ " ${component} " =~ "/" ]]; then
+    makefile+="$(cat "${path_repositories}/${component}")"
+  else
+    makefile+="$(cat "${path_templates}/components/makefile/${component}")"
+  fi
+  if [[ "${component}" == "header" ]]; then
+    makefile+=$'\n\n# Defining the base image allows for reuse in pre-build stage\n'
+    makefile+="BASE_IMAGE ?= ${repository}:${tag}"
+  fi
+  makefile+=$'\n\n'
+done
+echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
+
+# Create any directories and files as listed in the template
+for directory in ${directories[*]}; do
+  mkdir -p "${repo_name}/${directory}"
+done
+for file in ${files[*]}; do
+  touch "${repo_name}/${file}"
+done
+
+echo "Created ${repository} based docker-flow repo '${repo_name}'"

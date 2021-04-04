@@ -1,0 +1,11 @@
+# Install required packages for this project
+COPY packagelist /
+RUN packagelist="$(cat /packagelist | xargs)" && \
+if [ "${packagelist}" != "" ] ; then \
+    apt-get update \
+    && apt-get install --yes --no-install-recommends "${packagelist}" \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "System package(s) installed" ; \
+else \
+    echo "Packagelist is empty" ; \
+fi

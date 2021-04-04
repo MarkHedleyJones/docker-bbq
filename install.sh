@@ -16,7 +16,7 @@ for path in ${paths_to_try[*]}; do
       if [[ -f ${path}/${script} ]]; then
         echo "The '${script}' script is already exists at this location"
       else
-        ln -s "${script_dir}/bin/${script}" "${path}/${script}"
+        ln -sf "${script_dir}/bin/${script}" "${path}/${script}"
         echo "Created link to '${script}'"
       fi
     done
@@ -34,6 +34,8 @@ for path in ${paths_to_try[*]}; do
     echo ""
     echo "The helper script is automatically updated along with this repository."
     echo "Update using: git pull"
+    echo ""
+    echo "WARNING: Deleting this repository will break docker-flow."
     exit 0
   fi
 done

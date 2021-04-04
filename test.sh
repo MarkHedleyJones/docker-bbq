@@ -15,8 +15,8 @@ fi
 
 create_repo() {
   cd "${path_test}" || exit 1
-  "${path_base}"/bin/create_docker_repo "$@" > /dev/null
-  cd "$1" || exit 1
+  "${path_base}"/bin/create-repo "$@" > /dev/null
+  cd "$2" || exit 1
   # Add a success target to the workspace
   printf "#!/usr/bin/env sh\necho SUCCESS\n" > workspace/target.sh
   chmod +x workspace/target.sh
@@ -62,13 +62,14 @@ if [[ -d "${path_test}" ]]; then
   rm -rf "${path_test}"
 fi
 mkdir "${path_test}"
-create_repo "${test_repo_name}" "default"
+create_repo "debian" "${test_repo_name}"
 
 ################################################################################
 # Test definitions
 ################################################################################
 
 # BASIC TESTING OF 'RUN' COMMAND
+
 echo "Testing 'run' command on non-production image:"
 cd "${path_test}/${test_repo_name}" || exit 1
 make > /dev/null
@@ -120,7 +121,7 @@ echo "Testing template repositories:"
 cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
 
 test_name="ros: non-production image"
-create_repo "${test_repo_name}" "ros"
+create_repo "ros" "${test_repo_name}"
 make > /dev/null
 cd "${path_test}/${test_repo_name}" || exit 1
 test run workspace/target.sh

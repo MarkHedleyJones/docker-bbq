@@ -1,0 +1,10 @@
+# A standard build does not include the workspace - for development
+.PHONY: build
+build: pre-build
+	docker build \
+		--target base \
+		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
+		--build-arg PRODUCTION=0 \
+		--build-arg WORKDIR=$(WORKDIR) \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.
