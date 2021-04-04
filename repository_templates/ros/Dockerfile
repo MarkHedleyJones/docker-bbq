@@ -41,5 +41,6 @@ fi""" >> /root/.bashrc
 #######################
 FROM base AS production
 COPY workspace $WORKDIR
-RUN catkin_make install -j $(nproc) --cmake-args -DCMAKE_BUILD_TYPE=Release \
-    && rm -rf devel install
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash \
+    && catkin_make install -j $(nproc) --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    && rm -rf devel install"
