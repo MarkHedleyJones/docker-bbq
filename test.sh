@@ -8,6 +8,11 @@ path_run="${path_base}/bin"
 
 test_repo_name="test_repo"
 
+test_templates="False"
+if [[ " $* " =~ " --full " ]]; then
+  test_templates="True"
+fi
+
 create_repo() {
   cd "${path_test}" || exit 1
   "${path_base}"/bin/create_docker_repo "$@" > /dev/null
@@ -47,21 +52,24 @@ test() {
   fi
 }
 
-if [[ -d "${path_test}" ]]; then
-  echo "Existing 'tests' directory found, please remove - aborting!"
-  exit 1
-fi
+cleanup() {
+  docker image rm "${test_repo_name}" > /dev/null
+  rm -rf "${path_test}"
+}
 
 cd "${path_base}" || exit 1
-if [[ ! -d "${path_test}" ]]; then
-  mkdir "${path_test}"
+if [[ -d "${path_test}" ]]; then
+  rm -rf "${path_test}"
 fi
+mkdir "${path_test}"
 create_repo "${test_repo_name}" "default"
 
 ################################################################################
 # Test definitions
 ################################################################################
-echo "Path resolution tests - non-production image:"
+
+# BASIC TESTING OF 'RUN' COMMAND
+echo "Testing 'run' command on non-production image:"
 cd "${path_test}/${test_repo_name}" || exit 1
 make > /dev/null
 
@@ -83,20 +91,47 @@ test run "${test_repo_name}" /workspace/target.sh
 
 echo ""
 
-################################################################################
-echo "Path resolution tests - production image:"
+# Setup for testing production image
+echo "Testing 'run' command on production image:"
 cd "${path_test}/${test_repo_name}" || exit 1
 make production > /dev/null
 
-test_name="production image's workspace"
+test_name="outside repo, single command"
+cd /tmp || exit 1
+test run "${path_test}/${test_repo_name}"/workspace/target.sh
+
+test_name="outside repo, split command"
 cd /tmp || exit 1
 test run "${path_test}/${test_repo_name}" /workspace/target.sh
 
 echo ""
 
+if [[ "${test_templates}" == "False" ]]; then
+  echo "Basic tests passed"
+  cleanup
+  exit 0
+fi
+
 ################################################################################
-# Clean-up tests
-################################################################################
+
+# TESTING OF TEMPLATES
+
+echo "Testing template repositories:"
+cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
+
+test_name="ros: non-production image"
+create_repo "${test_repo_name}" "ros"
+make > /dev/null
+cd "${path_test}/${test_repo_name}" || exit 1
+test run workspace/target.sh
+
+test_name="ros: production image"
+make production > /dev/null
+cd "${path_test}" || exit 1
+test run "${test_repo_name}" /workspace/target.sh
+
+echo ""
+
 echo "All tests passed"
-docker image rm "${test_repo_name}" > /dev/null
-rm -rf "${path_test}"
+cleanup
+
