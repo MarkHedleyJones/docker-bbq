@@ -61,6 +61,9 @@ fi
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
 
 mkdir "${repo_name}"
+mkdir "${repo_name}"/build
+mkdir "${repo_name}"/workspace
+touch "${repo_name}"/build/packagelist
 
 # Generate the dockerfile from the components listed in the template
 dockerfile=""

@@ -1,5 +1,5 @@
 # Install required packages for this project
-COPY packagelist /
+COPY build/packagelist /
 RUN packagelist="$(cat /packagelist | xargs)" && \
 if [ "${packagelist}" != "" ] ; then \
     apt-get update \
