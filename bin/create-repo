@@ -88,8 +88,9 @@ for component in ${makefile_componets[*]}; do
   if [[ "${component}" == "header" ]]; then
     makefile+=$'\n\n# Defining the base image allows for reuse in pre-build stage\n'
     makefile+="BASE_IMAGE ?= ${repository}:${tag}"
+    makefile+=$'\n'
   fi
-  makefile+=$'\n\n'
+  makefile+=$'\n'
 done
 echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
 
