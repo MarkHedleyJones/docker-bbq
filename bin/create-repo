@@ -93,4 +93,7 @@ for file in ${files[*]}; do
   touch "${repo_name}/${file}"
 done
 
+echo "This file lets third-party tools to know this is a docker-flow \
+repository" > ${repo_name}/.docker-flow
+
 echo "Created ${repository} based docker-flow repo '${repo_name}'"
