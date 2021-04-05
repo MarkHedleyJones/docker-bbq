@@ -1,0 +1,3 @@
+		# Sort and remove duplicates from the packagelist
+		cat build/packagelist | sort --unique | sed '/^.*$$/d' > tmp/packagelist
+		mv tmp/packagelist build/packagelist

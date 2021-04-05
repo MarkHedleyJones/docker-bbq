@@ -1,4 +1,0 @@
-.PHONY: pre-build
-pre-build:
-		# Add your pre-build stages here
-		@echo "No pre-build stages, building ... "

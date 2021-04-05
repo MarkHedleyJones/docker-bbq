@@ -12,9 +12,15 @@ dockerfile_componets=(
 
 makefile_componets=(
   header
-  buildstage_development
-  buildstage_production
-  ros/makefile_prebuild
+  buildstage_development_head
+  buildstage_development_main
+  buildstage_development_tail
+  buildstage_production_head
+  buildstage_production_main
+  buildstage_production_tail
+  buildstage_prebuild_head
+  ros/makefile_prebuild_main
+  buildstage_prebuild_tail
 )
 
 directories=(
