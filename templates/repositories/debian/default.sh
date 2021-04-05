@@ -10,7 +10,7 @@ dockerfile_componets=(
 
 makefile_componets=(
   header
-  buildstage_basic
+  buildstage_development
   buildstage_production
   buildstage_prebuild
 )

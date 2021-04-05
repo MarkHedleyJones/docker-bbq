@@ -1,6 +1,6 @@
 # A standard build does not include the workspace - for development
-.PHONY: build
-build: pre-build
+.PHONY: development
+development: pre-build
 	docker build \
 		--target base \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
