@@ -52,6 +52,11 @@ fi
 
 repo_name="$2"
 
+if [[ -d "${repo_name}" ]]; then
+  echo "Target directory '${repo_name}' already exists - aborting"
+  exit 1
+fi
+
 # Load the components (contains arrays to use eval)
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
 
