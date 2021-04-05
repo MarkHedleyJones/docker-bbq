@@ -28,10 +28,7 @@ directories=(
   workspace/src
 )
 
-files=(
-  packagelist
-  workspace/src/.docker-flow
-)
+files=()
 
 dockerignore=(
   workspace/build

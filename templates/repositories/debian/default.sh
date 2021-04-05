@@ -21,13 +21,9 @@ makefile_componets=(
   buildstage_prebuild_tail
 )
 
-directories=(
-  workspace
-)
+directories=()
 
-files=(
-  packagelist
-)
+files=()
 
 dockerignore=()
 
