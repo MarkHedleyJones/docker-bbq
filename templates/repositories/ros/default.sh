@@ -24,20 +24,20 @@ makefile_componets=(
 )
 
 directories=(
-  workspace
-  workspace/src
+  workspace/catkin_ws
+  workspace/catkin_ws/src
 )
 
 files=()
 
 dockerignore=(
-  workspace/build
-  workspace/devel
-  workspace/install
+  workspace/catkin_ws/build
+  workspace/catkin_ws/devel
+  workspace/catkin_ws/install
 )
 
 gitignore=(
-  workspace/build
-  workspace/devel
-  workspace/install
+  workspace/catkin_ws/build
+  workspace/catkin_ws/devel
+  workspace/catkin_ws/install
 )
