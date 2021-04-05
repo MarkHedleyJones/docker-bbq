@@ -117,4 +117,7 @@ done
 echo "This file lets third-party tools to know this is a docker-flow \
 repository" > ${repo_name}/.docker-flow
 
+echo "## ${repo_name}" > ${repo_name}/README.md
+cat "${path_templates}"/components/README.md >> ${repo_name}/README.md
+
 echo "Created ${repository} based docker-flow repo '${repo_name}'"
