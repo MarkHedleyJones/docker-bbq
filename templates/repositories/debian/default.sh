@@ -22,3 +22,7 @@ directories=(
 files=(
   packagelist
 )
+
+dockerignore=()
+
+gitignore=()

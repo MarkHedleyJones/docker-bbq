@@ -90,6 +90,18 @@ for component in ${makefile_componets[*]}; do
 done
 echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
 
+# Generate .dockerignore
+cat ${path_templates}/components/dockerignore > "${repo_name}"/.dockerignore
+for component in ${dockerignore[*]}; do
+  echo "${component}" >> "${repo_name}"/.dockerignore
+done
+
+# Generate .gitignore
+cat ${path_templates}/components/gitignore > "${repo_name}"/.gitignore
+for component in ${gitignore[*]}; do
+  echo "${component}" >> "${repo_name}"/.gitignore
+done
+
 # Create any directories and files as listed in the template
 for directory in ${directories[*]}; do
   mkdir -p "${repo_name}/${directory}"

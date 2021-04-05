@@ -26,3 +26,15 @@ files=(
   packagelist
   workspace/src/.docker-flow
 )
+
+dockerignore=(
+  workspace/build
+  workspace/devel
+  workspace/install
+)
+
+gitignore=(
+  workspace/build
+  workspace/devel
+  workspace/install
+)
