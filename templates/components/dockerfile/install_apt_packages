@@ -1,4 +1,4 @@
-# Install required packages for this project
+# Install required packages/dependencies for this project
 COPY build/packagelist /
 RUN packagelist="$(cat /packagelist | xargs)" && \
 if [ "${packagelist}" != "" ] ; then \

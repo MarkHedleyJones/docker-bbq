@@ -1,2 +1,3 @@
+# Preparatory stage before building the target image
 .PHONY: pre-build
 pre-build:
