@@ -3,30 +3,30 @@
 tag=${tag:-noetic-ros-base}
 
 dockerfile_componets=(
-  file_header
-  install_apt_packages
-  development_target_head
-  ros/dockerfile_development_target_main
-  development_target_tail
-  pre_production_target_head
-  ros/dockerfile_pre_production_target_main
-  pre_production_target_tail
-  production_target_head
-  production_target_main
-  production_target_tail
+  file-header
+  install-apt-packages
+  target-development-head
+  ros/target-development-body
+  target-development-tail
+  target-preproduction-head
+  ros/target-preproduction-body
+  target-preproduction-tail
+  target-production-head
+  target-production-body
+  target-production-tail
 )
 
 makefile_componets=(
-  file_header
-  buildstage_development_head
-  buildstage_development_main
-  buildstage_development_tail
-  buildstage_production_head
-  buildstage_production_main
-  buildstage_production_tail
-  buildstage_prebuild_head
-  ros/makefile_buildstage_prebuild_main
-  buildstage_prebuild_tail
+  file-header
+  buildstage-development-head
+  buildstage-development-body
+  buildstage-development-tail
+  buildstage-production-head
+  buildstage-production-body
+  buildstage-production-tail
+  buildstage-prebuild-head
+  ros/buildstage-prebuild-body
+  buildstage-prebuild-tail
 )
 
 directories=(
