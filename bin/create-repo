@@ -69,39 +69,45 @@ touch "${repo_name}"/build/packagelist
 dockerfile=""
 for component in ${dockerfile_componets[*]}; do
   if [[ " ${component} " =~ "/" ]]; then
-    dockerfile+="$(cat "${path_repositories}/${component}")"
+    component_path="${path_repositories}/${component}"
   else
-    dockerfile+="$(cat "${path_templates}/components/dockerfile/${component}")"
+    component_path="${path_templates}/components/dockerfile/${component}"
   fi
-  dockerfile+=$'\n\n'
+  if [[ -s "${component_path}" ]]; then
+    dockerfile+="$(cat "${component_path}" | sed '/^$/d;')"
+    dockerfile+=$'\n\n'
+  fi
+  # dockerfile+=$'\n\n'
 done
 echo "${dockerfile}" | head -c -1 > "${repo_name}/Dockerfile"
 
 # Generate the makefile from the components listed in the template
-makefile=""
+makefile="BASE_IMAGE ?= ${repository}:${tag}"
+makefile+=$'\n'
 for component in ${makefile_componets[*]}; do
   if [[ " ${component} " =~ "/" ]]; then
-    makefile+="$(cat "${path_repositories}/${component}")"
+    component_path="${path_repositories}/${component}"
   else
-    makefile+="$(cat "${path_templates}/components/makefile/${component}")"
+    component_path="${path_templates}/components/makefile/${component}"
   fi
-  if [[ "${component}" == "header" ]]; then
-    makefile+=$'\n\n# Defining the base image allows for reuse in pre-build stage\n'
-    makefile+="BASE_IMAGE ?= ${repository}:${tag}"
+  if [[ "${component: -5}" == "_head" ]]; then
+    makefile+=$'\n\n'
+  fi
+  if [[ -s "${component_path}" ]]; then
+    makefile+="$(cat "${component_path}" | sed '/^$/d;')"
     makefile+=$'\n'
   fi
-  makefile+=$'\n'
 done
 echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
 
 # Generate .dockerignore
-cat ${path_templates}/components/dockerignore > "${repo_name}"/.dockerignore
+cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
 for component in ${dockerignore[*]}; do
   echo "${component}" >> "${repo_name}"/.dockerignore
 done
 
 # Generate .gitignore
-cat ${path_templates}/components/gitignore > "${repo_name}"/.gitignore
+cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
 for component in ${gitignore[*]}; do
   echo "${component}" >> "${repo_name}"/.gitignore
 done
