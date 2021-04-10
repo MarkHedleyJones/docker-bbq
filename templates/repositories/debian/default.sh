@@ -29,10 +29,8 @@ makefile_componets=(
   buildstage-prebuild-tail
 )
 
-directories=()
+create_directories=()
 
-files=()
+dockerignore_lines=()
 
-dockerignore=()
-
-gitignore=()
+gitignore_lines=()

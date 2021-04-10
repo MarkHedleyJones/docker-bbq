@@ -29,20 +29,18 @@ makefile_componets=(
   buildstage-prebuild-tail
 )
 
-directories=(
+create_directories=(
   workspace/catkin_ws
   workspace/catkin_ws/src
 )
 
-files=()
-
-dockerignore=(
+dockerignore_entries=(
   workspace/catkin_ws/build
   workspace/catkin_ws/devel
   workspace/catkin_ws/install
 )
 
-gitignore=(
+gitignore_entries=(
   workspace/catkin_ws/build
   workspace/catkin_ws/devel
   workspace/catkin_ws/install

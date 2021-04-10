@@ -101,22 +101,19 @@ echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
 
 # Generate .dockerignore
 cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
-for component in ${dockerignore[*]}; do
+for component in ${dockerignore_entries[*]}; do
   echo "${component}" >> "${repo_name}"/.dockerignore
 done
 
 # Generate .gitignore
 cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
-for component in ${gitignore[*]}; do
+for component in ${gitignore_entries[*]}; do
   echo "${component}" >> "${repo_name}"/.gitignore
 done
 
 # Create any directories and files as listed in the template
-for directory in ${directories[*]}; do
+for directory in ${create_directories[*]}; do
   mkdir -p "${repo_name}/${directory}"
-done
-for file in ${files[*]}; do
-  touch "${repo_name}/${file}"
 done
 
 echo "## ${repo_name}" > ${repo_name}/README.md
