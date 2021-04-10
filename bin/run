@@ -126,22 +126,18 @@ EOF
   exit
 }
 
-parse_params() {
-  while :; do
-    case "${1-}" in
-    -h | --help) usage ;;
-    -l | --list) list_docker_images ;;
-    -v | --verbose) verbosity=1 ;;
-    -?*) error "Unknown option: $1" ;;
-    *) break ;;
-    esac
-    shift
-  done
+# Parse parameters
+while :; do
+  case "${1-}" in
+  -h | --help) usage ;;
+  -l | --list) list_docker_images ;;
+  -v | --verbose) verbosity=1 ;;
+  -?*) error "Unknown option: $1" ;;
+  *) break ;;
+  esac
+  shift
+done
 
-  return 0
-}
-
-parse_params "$@"
 find_repo_name "$(pwd)"
 testing "image-from-working-dir" "${image}"
 
