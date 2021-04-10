@@ -287,11 +287,12 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
   eval "docker run \
-    --name ${container_name} \
-    --rm \
-    --privileged \
-    --net=host \
+    --hostname ${image} \
     --interactive \
+    --name ${container_name} \
+    --net host \
+    --privileged \
+    --rm \
     --tty \
     ${docker_args_bash_history} \
     ${docker_args_display} \
