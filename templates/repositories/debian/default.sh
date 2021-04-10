@@ -29,6 +29,11 @@ makefile_componets=(
   buildstage-prebuild-tail
 )
 
+readme_components=(
+  file-header
+  section-building
+)
+
 create_directories=()
 
 dockerignore_lines=()

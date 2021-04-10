@@ -29,6 +29,12 @@ makefile_componets=(
   buildstage-prebuild-tail
 )
 
+readme_components=(
+  file-header
+  section-building
+  ros/section-development
+)
+
 create_directories=(
   workspace/catkin_ws
   workspace/catkin_ws/src

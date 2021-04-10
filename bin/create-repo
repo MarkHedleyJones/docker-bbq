@@ -99,6 +99,24 @@ for component in ${makefile_componets[*]}; do
 done
 echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
 
+# Generate the makefile from the components listed in the template
+readme=""
+for component in ${readme_components[*]}; do
+  if [[ "${component}" = "file-header" ]]; then
+    readme+="# ${repo_name}"
+  fi
+  if [[ " ${component} " =~ "/" ]]; then
+    component_path="${path_repositories}/${component}"
+  else
+    component_path="${path_templates}/components/readme/${component}"
+  fi
+  if [[ -s "${component_path}" ]]; then
+    readme+=$'\n\n'
+    readme+="$(cat "${component_path}")"
+  fi
+done
+echo "${readme}" > "${repo_name}"/README.md
+
 # Generate .dockerignore
 cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
 for component in ${dockerignore_entries[*]}; do
@@ -115,8 +133,5 @@ done
 for directory in ${create_directories[*]}; do
   mkdir -p "${repo_name}/${directory}"
 done
-
-echo "## ${repo_name}" > ${repo_name}/README.md
-cat "${path_templates}"/components/README.md >> ${repo_name}/README.md
 
 echo "Created ${repository} based docker-flow repo '${repo_name}'"
