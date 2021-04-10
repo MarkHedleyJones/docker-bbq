@@ -1,4 +1,3 @@
-# The image name will inherit the name of this repository
 IMAGE_NAME := $(shell basename $(CURDIR))
 IMAGE_TAG  := latest
 WORKDIR    := /workspace

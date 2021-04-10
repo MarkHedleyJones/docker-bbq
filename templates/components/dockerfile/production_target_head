@@ -1,0 +1,7 @@
+################################################################################
+# PRODUCTION TARGET - generate final self-contained image
+################################################################################
+FROM base AS production-image
+ARG WORKDIR
+ENV WORKDIR $WORKDIR
+WORKDIR $WORKDIR

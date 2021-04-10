@@ -1,0 +1,6 @@
+################################################################################
+# PRE-PRODUCTION STAGE - transform workspace into production-ready state
+################################################################################
+FROM base AS pre-production
+ARG WORKDIR
+COPY workspace $WORKDIR

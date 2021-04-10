@@ -1,0 +1,2 @@
+# Copy the clean workspace into production image
+COPY --from=pre-production workspace $WORKDIR

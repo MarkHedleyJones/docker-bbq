@@ -1,0 +1,8 @@
+# Add ROS specific convenience functionality
+RUN echo "Build & source the catkin workspace from anywhere by typing 'cm'" \
+  && echo "alias cm='cd ${WORKDIR}/catkin_ws && catkin_make && rospack profile && source devel/setup.bash ; cd - > /dev/null'" >> /root/.bashrc \
+  && echo "Ensure ROS and the catkin_ws is sourced even on docker exec" \
+  && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc \
+  && echo "if [[ -f /workspace/catkin_ws/devel/setup.bash ]]; then\n\
+source /workspace/catkin_ws/devel/setup.bash\n\
+fi" >> /root/.bashrc ;

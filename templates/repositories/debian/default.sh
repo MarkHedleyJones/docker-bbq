@@ -3,13 +3,21 @@
 tag=${tag:-buster-slim}
 
 dockerfile_componets=(
-  header
+  file_header
   install_apt_packages
-  production_target
+  development_target_head
+  development_target_main
+  development_target_tail
+  pre_production_target_head
+  pre_production_target_main
+  pre_production_target_tail
+  production_target_head
+  production_target_main
+  production_target_tail
 )
 
 makefile_componets=(
-  header
+  file_header
   buildstage_development_head
   buildstage_development_main
   buildstage_development_tail

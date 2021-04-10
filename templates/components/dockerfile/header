@@ -1,8 +1,0 @@
-ARG BASE_IMAGE
-FROM $BASE_IMAGE AS base
-
-ARG PRODUCTION
-
-# Allow the workspace variable to be used during build
-ARG WORKDIR
-WORKDIR $WORKDIR

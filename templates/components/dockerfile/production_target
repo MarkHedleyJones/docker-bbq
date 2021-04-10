@@ -1,5 +1,0 @@
-#######################
-# PRODUCTION TARGET
-#######################
-FROM base AS production
-COPY workspace $WORKDIR
