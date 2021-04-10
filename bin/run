@@ -83,8 +83,15 @@ set_workspace_path() {
   if [[ $# -ne 1 ]]; then
     error "Error setting workspace paths"
   fi
-  local_workspace="${1}"
-  image_workspace="/${dirname_workspace}"
+  if [[ "${repository_path}" != "" ]]; then
+    if [[ -f "${repository_path}/.docker-flow" ]]; then
+      local_workspace="${1}"
+      image_workspace="/${dirname_workspace}"
+    else
+      info "Repository does not contain a .docker-flow file" \
+           "- no workspace will be mounted"
+    fi
+  fi
 }
 
 error() {

@@ -1,7 +1,9 @@
 	docker build \
-		--target base \
+		--target development-image \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
-		--build-arg PRODUCTION=0 \
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
+	@echo "This file enables automatic workspace mounting for this repository" \
+		> .docker-flow
+	@echo "Development image built - automatic workspace mounting enabled for $(IMAGE_NAME)"

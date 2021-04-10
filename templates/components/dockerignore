@@ -1,4 +1,5 @@
 *.pyc
+.docker-flow
 .git
 .gitignore
 __pycache__

@@ -1,7 +1,8 @@
 	docker build \
-		--target production \
+		--target production-image \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
-		--build-arg PRODUCTION=1 \
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
+	@rm -f .docker-flow
+	@echo "Production image built - automatic workspace mounting disabled for $(IMAGE_NAME)"

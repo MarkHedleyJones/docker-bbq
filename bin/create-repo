@@ -114,9 +114,6 @@ for file in ${files[*]}; do
   touch "${repo_name}/${file}"
 done
 
-echo "This file lets third-party tools to know this is a docker-flow \
-repository" > ${repo_name}/.docker-flow
-
 echo "## ${repo_name}" > ${repo_name}/README.md
 cat "${path_templates}"/components/README.md >> ${repo_name}/README.md
 
