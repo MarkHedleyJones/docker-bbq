@@ -6,23 +6,23 @@ dockerfile_componets=(
   file-header
   install-apt-packages
   install-pip-packages
-  target-development-head
+  target-development
   target-development-body
-  target-preproduction-head
+  target-preproduction
   target-preproduction-body
-  target-production-head
+  target-production
   target-production-body
 )
 
 makefile_componets=(
   file-header
-  buildstage-development-head
+  buildstage-development
   buildstage-development-body
-  buildstage-production-head
+  buildstage-production
   buildstage-production-body
-  buildstage-prebuild-head
+  buildstage-prebuild
   buildstage-prebuild-body
-  buildstage-postbuild-head
+  buildstage-postbuild
   buildstage-postbuild-body
 )
 
