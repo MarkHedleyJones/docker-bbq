@@ -6,31 +6,25 @@ dockerfile_componets=(
   file-header
   install-apt-packages
   install-pip-packages
-  target-development-head
+  target-development
   ros/target-development-body
-  target-development-tail
-  target-preproduction-head
+  target-preproduction
   ros/target-preproduction-body
-  target-preproduction-tail
-  target-production-head
+  target-production
   target-production-body
-  target-production-tail
 )
 
 makefile_componets=(
   file-header
-  buildstage-development-head
+  buildstage-development
   buildstage-development-body
-  buildstage-development-tail
-  buildstage-production-head
+  buildstage-production
   buildstage-production-body
-  buildstage-production-tail
-  buildstage-prebuild-head
-  ros/buildstage-prebuild-body
-  buildstage-prebuild-tail
-  buildstage-postbuild-head
+  buildstage-prebuild
+  buildstage-prebuild-body
+  ros/buildstage-prebuild-tail
+  buildstage-postbuild
   buildstage-postbuild-body
-  buildstage-postbuild-tail
 )
 
 readme_components=(
