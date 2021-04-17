@@ -1,3 +1,4 @@
+
 # A production build includes the workspace in the final image
 .PHONY: build-production-image
 build-production-image:

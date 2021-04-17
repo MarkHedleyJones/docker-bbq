@@ -75,8 +75,8 @@ for component in ${dockerfile_componets[*]}; do
     component_path="${path_templates}/components/dockerfile/${component}"
   fi
   if [[ -s "${component_path}" ]]; then
-    dockerfile+="$(cat "${component_path}" | sed '/^$/d;')"
-    dockerfile+=$'\n\n'
+    dockerfile+="$(cat "${component_path}" | sed '${/^$/d;}')"
+    dockerfile+=$'\n'
   fi
 done
 echo "${dockerfile}" | head -c -1 > "${repo_name}/Dockerfile"
@@ -94,7 +94,7 @@ for component in ${makefile_componets[*]}; do
     makefile+=$'\n'
   fi
   if [[ -s "${component_path}" ]]; then
-    makefile+="$(cat "${component_path}" | sed '/^$/d;')"
+    makefile+="$(cat "${component_path}" | sed '${/^$/d;}')"
     makefile+=$'\n'
   fi
 done
