@@ -1,3 +1,3 @@
-# A standard build does not include the workspace - for development
-.PHONY: development
-development: pre-build
+# A development build does not include the workspace
+.PHONY: build-development-image
+build-development-image:

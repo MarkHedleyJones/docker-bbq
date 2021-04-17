@@ -1,3 +1,9 @@
-	# Sort and remove duplicates from the packagelist
-	cat $(CURDIR)/build/packagelist | sort --unique | sed '/^\s*$$/d' > /tmp/packagelist
-	mv /tmp/packagelist $(CURDIR)/build/packagelist
+	# Sorting and removing duplicate entries from the packagelist ...
+	@mkdir -p $(CURDIR)/build/tmp
+	@cat $(CURDIR)/build/packagelist | sort --unique | sed '/^\s*$$/d' > $(CURDIR)/build/tmp/packagelist
+	@cp $(CURDIR)/build/tmp/packagelist $(CURDIR)/build/packagelist
+	# Detecting any required 3rd-party package-managers ...
+	@mkdir -p $(CURDIR)/build/tmp/pip
+	@if [ -s $(CURDIR)/build/pip-requirements.txt ]; then echo "python-pip" >> $(CURDIR)/build/tmp/packagelist && cp $(CURDIR)/build/pip-requirements.txt $(CURDIR)/build/tmp/pip; fi
+	@if [ -s $(CURDIR)/build/pip2-requirements.txt ]; then echo "python2-pip" >> $(CURDIR)/build/tmp/packagelist && cp $(CURDIR)/build/pip2-requirements.txt $(CURDIR)/build/tmp/pip; fi
+	@if [ -s $(CURDIR)/build/pip3-requirements.txt ]; then echo "python3-pip" >> $(CURDIR)/build/tmp/packagelist && cp $(CURDIR)/build/pip3-requirements.txt $(CURDIR)/build/tmp/pip; fi

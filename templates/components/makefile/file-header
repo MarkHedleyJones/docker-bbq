@@ -1,3 +1,9 @@
 IMAGE_NAME := $(shell basename $(CURDIR))
 IMAGE_TAG  := latest
 WORKDIR    := /workspace
+
+.PHONY: development
+development: pre-build build-development-image post-build
+
+.PHONY: production
+production: pre-build build-production-image post-build

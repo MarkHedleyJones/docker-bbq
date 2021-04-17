@@ -64,6 +64,7 @@ mkdir "${repo_name}"
 mkdir "${repo_name}"/build
 mkdir "${repo_name}"/workspace
 touch "${repo_name}"/build/packagelist
+touch "${repo_name}"/build/pip-requirements.txt
 
 # Generate the dockerfile from the components listed in the template
 dockerfile=""

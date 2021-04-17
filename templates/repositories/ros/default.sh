@@ -5,6 +5,7 @@ tag=${tag:-noetic-ros-base}
 dockerfile_componets=(
   file-header
   install-apt-packages
+  install-pip-packages
   target-development-head
   ros/target-development-body
   target-development-tail
@@ -27,6 +28,9 @@ makefile_componets=(
   buildstage-prebuild-head
   ros/buildstage-prebuild-body
   buildstage-prebuild-tail
+  buildstage-postbuild-head
+  buildstage-postbuild-body
+  buildstage-postbuild-tail
 )
 
 readme_components=(

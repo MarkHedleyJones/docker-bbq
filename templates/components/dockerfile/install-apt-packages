@@ -1,9 +1,8 @@
-# Install required packages/dependencies for this project
-COPY build/packagelist /
-RUN packagelist="$(cat /packagelist | xargs)" && \
-if [ "${packagelist}" != "" ] ; then \
+# Install APT packages (if any)
+COPY build/tmp/packagelist /build/packagelist
+RUN if [ -s /build/packagelist ] ; then \
     apt-get update \
-    && apt-get install --yes --no-install-recommends ${packagelist} \
+    && apt-get install --yes --no-install-recommends $(cat /build/packagelist | xargs) \
     && rm -rf /var/lib/apt/lists/* \
     && echo "System package(s) installed" ; \
 else \

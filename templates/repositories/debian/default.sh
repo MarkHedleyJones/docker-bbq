@@ -5,6 +5,7 @@ tag=${tag:-buster-slim}
 dockerfile_componets=(
   file-header
   install-apt-packages
+  install-pip-packages
   target-development-head
   target-development-body
   target-development-tail
@@ -27,6 +28,9 @@ makefile_componets=(
   buildstage-prebuild-head
   buildstage-prebuild-body
   buildstage-prebuild-tail
+  buildstage-postbuild-head
+  buildstage-postbuild-body
+  buildstage-postbuild-tail
 )
 
 readme_components=(
