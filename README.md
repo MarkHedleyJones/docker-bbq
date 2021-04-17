@@ -48,3 +48,8 @@ The basic structure of a docker-flow repository is as follows (although depends 
 │
 └─ README.md                      # Pre-populated with build instructions
 ```
+
+The repository includes a `make`-based Makefile to simplify the build process.
+There are two options for building your project:
+1. `make` - Builds the development image. Allows for faster development as the image's workspace *is* the repository's workspace.
+2. `make production` - Builds the production image. Ready to be shipped, the image contains its own workspace.
