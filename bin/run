@@ -6,7 +6,7 @@ TESTING="${TESTING:=False}"
 path_global_workspace="/home/${USER}/workspaces"
 dirname_workspace="workspace"
 verbosity=0
-interactive=0
+interactive=1
 
 testing() {
   if [[ "${TESTING}" != "False" ]]; then
