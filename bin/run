@@ -107,7 +107,7 @@ usage() {
 Usage: $(basename "${BASH_SOURCE[0]}") [-h] [image-source] [command]
 
   Enter a docker container and optionally execute a command. If no command is
-  given, drop into an interactive bash shell.
+  given, drop into an interactive shell.
 
   The image-source will be determined the following checks:
   1. Check to see if the user is currently in a docker-flow repository.
@@ -128,7 +128,7 @@ EXAMPLES:
 
   $(basename "${BASH_SOURCE[0]}") ~/repos/debian-buster-slim
 
-  Drop into the bash shell of a docker-flow repository at specified path.
+  Drop into the shell of a docker-flow repository at specified path.
 EOF
   exit
 }
@@ -251,9 +251,12 @@ if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
   docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
-docker_command="/usr/bin/env bash"
+# Detect which shell is installed in the image
+shell=$(docker run --rm ${image}:${tag} sh -c 'command -v bash || command -v sh')
+
+docker_command="${shell}"
 if [[ "${command}" != "" ]]; then
-  docker_command="/usr/bin/env bash -cl \"${command}\""
+  docker_command="${shell} -cl \"${command}\""
 fi
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
@@ -304,7 +307,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
 
   if [[ ${image_workspace} != "" ]]; then
     # Recursively set permissions of workspace folder
-    fix_permission_command="chown --recursive --from=\$(id -u):\$(id -g) "
+    fix_permission_command="chown --recursive "
     fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
 
     eval "docker run \
@@ -312,7 +315,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
       --entrypoint="" \
       ${docker_args_mount_workdir} \
       ${image}:${tag} \
-      /usr/bin/env bash -c '${fix_permission_command}'"
+      ${shell} -c '${fix_permission_command}'"
   fi
 else
   info "Running in existing container (${image}:${tag})"
