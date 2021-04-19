@@ -6,6 +6,7 @@ TESTING="${TESTING:=False}"
 path_global_workspace="/home/${USER}/workspaces"
 dirname_workspace="workspace"
 verbosity=0
+interactive=0
 
 testing() {
   if [[ "${TESTING}" != "False" ]]; then
@@ -139,6 +140,7 @@ while :; do
   -h | --help) usage ;;
   -l | --list) list_docker_images ;;
   -v | --verbose) verbosity=1 ;;
+  -n | --non-interactive) interactive=0 ;;
   -?*) error "Unknown option: $1" ;;
   *) break ;;
   esac
@@ -256,6 +258,11 @@ if [[ "${command}" != "" ]]; then
   docker_command="/usr/bin/env bash -cl \"${command}\""
 fi
 
+docker_args_interactive=""
+if [[ "${interactive}" -eq 1 ]]; then
+  docker_args_interactive="--interactive --tty "
+fi
+
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   info "Running in new container (${image}:${tag})"
 
@@ -288,12 +295,11 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
 
   eval "docker run \
     --hostname ${image} \
-    --interactive \
     --name ${container_name} \
     --net host \
     --privileged \
     --rm \
-    --tty \
+    ${docker_args_interactive} \
     ${docker_args_bash_history} \
     ${docker_args_display} \
     ${docker_args_mount_workdir} \
@@ -317,8 +323,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
 else
   info "Running in existing container (${image}:${tag})"
   eval docker exec \
-    --interactive \
-    --tty \
+    "${docker_args_interactive}" \
     "${docker_args_workdir}" \
     "${container_name}" \
     "${docker_command}"
