@@ -34,7 +34,7 @@ test() {
     echo "Unknown test target - aborting"
     exit 1
   fi
-  "${path_run}"/run "$@" > "${path_test}"/log.txt
+  "${path_run}"/run --non-interactive "$@" > "${path_test}"/log.txt
   if [[ "$(cat "${path_test}/log.txt" | xargs)" =~ "SUCCESS" ]]; then
     echo -e "\e[32mSUCCESS\e[0m"
   else
