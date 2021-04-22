@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -u
+set -eu
 
 path_base="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" &> /dev/null && pwd -P)"
 path_test="${path_base}/tests"
@@ -120,16 +120,25 @@ fi
 echo "Testing template repositories:"
 cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
 
-test_name="ros: non-production image"
-create_repo "ros" "${test_repo_name}"
-make > /dev/null
-cd "${path_test}/${test_repo_name}" || exit 1
-test run workspace/target.sh
+template_repositories=($(ls "${path_base}/templates/repositories"))
 
-test_name="ros: production image"
-make production > /dev/null
-cd "${path_test}" || exit 1
-test run "${test_repo_name}" /workspace/target.sh
+for template_repository in ${template_repositories[*]}; do
+  test_name="${template_repository}: development image"
+  create_repo "${template_repository}" "${test_repo_name}"
+  cd "${path_test}/${test_repo_name}" || exit 1
+  make > /dev/null
+  test run workspace/target.sh
+
+  test_name="${template_repository}: production image"
+  make production > /dev/null
+  test run /workspace/target.sh
+
+  test_name="${template_repository}: package installation"
+  printf "htop\nranger" > build/packagelist
+  make > /dev/null
+  test run workspace/target.sh
+  cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
+done
 
 echo ""
 
