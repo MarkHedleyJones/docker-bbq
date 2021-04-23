@@ -2,7 +2,7 @@
 # Install APK packages (if any)
 COPY build/tmp/packagelist /build/packagelist
 RUN if [ -s /build/packagelist ] ; then \
-    apk add $(cat /build/packagelist | xargs) \
+    apk add $(cat /build/packagelist | xargs | sed -r 's/python([2,3]{0,1})-/py\1-/') \
     && echo "System package(s) installed" ; \
 else \
     echo "Packagelist is empty" ; \

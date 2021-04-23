@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -u
 
 path_base="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" &> /dev/null && pwd -P)"
 path_test="${path_base}/tests"
@@ -26,7 +26,7 @@ test_name=NULL
 
 test() {
   printf " - "
-  printf "%-31s" "${test_name}"
+  printf "%-35s" "${test_name}"
   printf " ... "
   if [[ $1 == "run" ]]; then
     shift
@@ -55,6 +55,17 @@ test() {
 cleanup() {
   docker image rm "${test_repo_name}" > /dev/null
   rm -rf "${path_test}"
+}
+
+build() {
+  make $* > "${path_test}"/log.txt
+  if [[ $? -ne 0 ]]; then
+    echo -e "\e[31mFAILED\e[0m"
+    echo ""
+    echo -e "\e[33mERROR MESSAGE:\e[0m"
+    cat "${path_test}"/log.txt
+    exit 1
+  fi
 }
 
 cd "${path_base}" || exit 1
@@ -126,17 +137,23 @@ for template_repository in ${template_repositories[*]}; do
   test_name="${template_repository}: development image"
   create_repo "${template_repository}" "${test_repo_name}"
   cd "${path_test}/${test_repo_name}" || exit 1
-  make > /dev/null
+  build
   test run workspace/target.sh
 
   test_name="${template_repository}: production image"
-  make production > /dev/null
+  build production
   test run /workspace/target.sh
 
-  test_name="${template_repository}: package installation"
+  test_name="${template_repository}: system package installation"
   printf "htop\nranger" > build/packagelist
-  make > /dev/null
+  build
   test run workspace/target.sh
+
+  test_name="${template_repository}: pip package installation"
+  printf "plato_cat" > build/pip3-requirements.txt
+  build
+  test run workspace/target.sh
+
   cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
 done
 
