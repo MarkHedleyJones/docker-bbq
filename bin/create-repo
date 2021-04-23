@@ -97,9 +97,6 @@ for component in ${makefile_componets[*]}; do
   else
     component_path="${path_templates}/components/makefile/${component}"
   fi
-  if [[ "${component: -5}" == "-head" ]]; then
-    makefile+=$'\n'
-  fi
   if [[ -s "${component_path}" ]]; then
     makefile+="$(cat "${component_path}" | sed '${/^$/d;}')"
     makefile+=$'\n'
