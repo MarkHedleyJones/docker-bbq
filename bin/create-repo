@@ -4,6 +4,11 @@ path_base="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" &
 path_templates="${path_base}/templates"
 path_repositories="${path_templates}/repositories"
 repositories=($(ls "${path_repositories}"))
+enable_git=0
+
+if [ -s ~/.gitconfig ]; then
+  enable_git=1
+fi
 
 usage() {
   cat <<EOF
@@ -61,6 +66,9 @@ fi
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
 
 mkdir "${repo_name}"
+if [ ${enable_git} ]; then
+  $(cd "${repo_name}" && git init)
+fi
 mkdir "${repo_name}"/build
 mkdir "${repo_name}"/workspace
 touch "${repo_name}"/build/packagelist
@@ -134,4 +142,7 @@ for directory in ${create_directories[*]}; do
   mkdir -p "${repo_name}/${directory}"
 done
 
+if [ ${enable_git} ]; then
+  $(cd "${repo_name}" && git add . && git commit -m "Added docker-flow ${repository} template")
+fi
 echo "Created ${repository} based docker-flow repo '${repo_name}'"
