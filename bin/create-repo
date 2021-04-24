@@ -66,7 +66,7 @@ fi
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
 
 mkdir "${repo_name}"
-if [ ${enable_git} ]; then
+if [ "${enable_git}" == '1' ]; then
   printf "$(cd "${repo_name}" && git init > /dev/null)"
 fi
 mkdir "${repo_name}"/build
@@ -139,7 +139,7 @@ for directory in ${create_directories[*]}; do
   mkdir -p "${repo_name}/${directory}"
 done
 
-if [ ${enable_git} ]; then
+if [ "${enable_git}" == '1' ]; then
   printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-flow ${repository} template")"
 fi
 echo "Created ${repository} based docker-flow repo '${repo_name}'"
