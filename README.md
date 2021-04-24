@@ -1,6 +1,6 @@
-# docker-flow
+# docker-bbq
 
-A templated workflow to help develop software designed to run inside Docker containers.
+Tools for rapidly cooking up new [Docker](https://www.docker.com/)-based projects and seamless development.
 
 This tool might be useful if you:
 * find yourself creating new Docker projects by duplicating parts of previous ones, or
@@ -10,16 +10,16 @@ This tool might be useful if you:
 ## Demonstration
 
 <p align="center">
-  <img src="https://raw.github.com/markhedleyjones/docker-flow/master/media/demo.gif" alt="docker-flow demonstration"/>
+  <img src="https://raw.github.com/markhedleyjones/docker-bbq/master/media/demo.gif" alt="docker-bbq demonstration"/>
 </p>
 
 ## Overview
-There are two components to docker-flow.
-The first is `create-repo`, which can be used to make templated docker-flow repositories.
+There are two components to docker-bbq.
+The first is `create-repo`, which can be used to make templated docker-bbq repositories.
 The second is the `run` command, which makes interracting and developing your Docker project quick and easy.
 
 ### `run` - under the hood:
-Executing something in your docker-flow repository (from anywhere on the host) using `run <command>` does the following steps:
+Executing something in your docker-bbq repository (from anywhere on the host) using `run <command>` does the following steps:
 1. Determine the image/project name by crawling up the path tree to find the relevant Dockerfile.
 2. Check if the target container is already running. If yes, `<command>` will be executed inside it. If not, a new one will be created.
 3. Check if the repository is in the "development state". If yes, the repository's workspace will be mounted into the new container.
@@ -28,7 +28,7 @@ Executing something in your docker-flow repository (from anywhere on the host) u
 6. After the container exits, ownership of files created in the container will be changed to your username.
 
 ### Templated repository structure:
-The basic structure of a docker-flow repository is as follows (although depends on the template you select)
+The basic structure of a docker-bbq repository is as follows (although depends on the template you select)
 ```
 <project-name>
 │

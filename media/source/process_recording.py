@@ -3,14 +3,14 @@
 import os
 
 input_scripts = [
-    "dockerflow-recording-pg1",
-    "dockerflow-recording-pg2",
-    "dockerflow-recording-pg3",
-    "dockerflow-recording-pg4",
-    "dockerflow-recording-pg5",
+    "demo-recording-pg1",
+    "demo-recording-pg2",
+    "demo-recording-pg3",
+    "demo-recording-pg4",
+    "demo-recording-pg5",
 ]
 
-output_script = "dockerflow-recording-processed"
+output_script = "demo-recording-processed"
 
 if os.path.isfile(output_script):
     os.remove(output_script)
@@ -79,7 +79,7 @@ for input_script in input_scripts:
 
         if latch is not None and latch <= 0:
             counter += 1
-            output_filename = f"dockerflow-recording-part-{counter}"
+            output_filename = f"demo-recording-part-{counter}"
             with open(output_filename, "w") as f:
                 f.write("".join(start_stop))
                 f.write("".join(new_lines))
@@ -90,7 +90,7 @@ for input_script in input_scripts:
             latch = None
 
 counter += 1
-output_filename = f"dockerflow-recording-part-{counter}"
+output_filename = f"demo-recording-part-{counter}"
 with open(output_filename, "w") as f:
     f.write("".join(start_stop))
     f.write("".join(new_lines))

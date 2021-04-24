@@ -35,7 +35,7 @@ for path in ${paths_to_try[*]}; do
     echo "The helper script is automatically updated along with this repository."
     echo "Update using: git pull"
     echo ""
-    echo "WARNING: Deleting this repository will break docker-flow."
+    echo "WARNING: Deleting this repository will break docker-bbq."
     exit 0
   fi
 done

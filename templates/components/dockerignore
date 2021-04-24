@@ -1,5 +1,5 @@
 *.pyc
-.docker-flow
+.docker-bbq
 .git
 .gitignore
 __pycache__
