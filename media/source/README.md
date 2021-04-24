@@ -38,9 +38,13 @@ I added the following line to my i3 configuration file (~/.config/i3/config).
 
 Then I would link the relevant page to that file using
 
-    ln -s <dockerflow-recording-part-X> /home/$USER/dockerflow-recording-part-ln
+    ln -s <dockerflow-recording-part-X> /home/$USER/dockerflow-recording-ln
 
 ## 4. Run recorded macro sequences
+
+Terminal used: gnome-terminal
+Font used: terminus (14pt)
+Shell used: zsh with oh-my-zsh theme "simple"
 
 Move to an empty desktop and press your $mod+F12
 $mod is either Alt or the Windows key depending on your i3 configuration.
@@ -53,7 +57,7 @@ Once all gifs have been saved, use [gifsicle](https://www.lcdf.org/gifsicle/) to
 
     gifsicle dockerflow-recording-gif-pt* > combined.gif
 
-## 6. Add background and trim size
+## 6. Add background and trim size (optional)
 Then, open demo-background.svg in Inkscape and save the output as a PNG with transparent edges (e.g. demo-background.png).
 Then after opening `combined.gif` in Gimp:
 1. Rescale the dimensions to that of demo-background.png
