@@ -269,9 +269,9 @@ KeyStrRelease minus
 KeyStrRelease Shift_L
 Delay 288
 KeyStrPress r
+KeyStrRelease r
 Delay 64
 KeyStrPress a
-KeyStrRelease r
 KeyStrRelease a
 Delay 216
 KeyStrPress n
