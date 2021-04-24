@@ -4,5 +4,5 @@
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
-	@rm -f .docker-flow
+	@rm -f .docker-bbq
 	@echo "Production image built - automatic workspace mounting disabled for $(IMAGE_NAME)"

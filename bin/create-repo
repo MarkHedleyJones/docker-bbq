@@ -25,7 +25,7 @@ EXAMPLES:
 
   $(basename "${BASH_SOURCE[0]}") debian my_project
 
-  Creates a new docker-flow repository named 'my_project' based on the default
+  Creates a new docker-bbq repository named 'my_project' based on the default
   debian image (debian:buster-slim)
 
 EOF
@@ -140,6 +140,6 @@ for directory in ${create_directories[*]}; do
 done
 
 if [ ${enable_git} ]; then
-  printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-flow ${repository} template")"
+  printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
 fi
-echo "Created ${repository} based docker-flow repo '${repo_name}'"
+echo "Created ${repository} based docker-bbq repo '${repo_name}'"
