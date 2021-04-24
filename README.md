@@ -1,6 +1,6 @@
 # docker-bbq
 
-A templated workflow to help develop software designed to run inside Docker containers.
+Tools for rapidly cooking up new [Docker](https://www.docker.com/)-based projects and seamless development.
 
 This tool might be useful if you:
 * find yourself creating new Docker projects by duplicating parts of previous ones, or
