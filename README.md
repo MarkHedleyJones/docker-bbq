@@ -1,11 +1,11 @@
 # docker-bbq
 
-Tools for rapidly cooking up new [Docker](https://www.docker.com/)-based projects and seamless development.
+A tool for rapidly cooking up new [Docker](https://www.docker.com/) projects while simplifying containerised software development.
 
 This tool might be useful if you:
-* find yourself creating new Docker projects by duplicating parts of previous ones, or
-* often create scripts with names like `run.sh` to launch containers during development, or
-* find yourself running `docker run -it -v ...` more often than you think you should have to.
+* find yourself running `docker run -it -v ...` more often than you think you should, or
+* find yourself creating new Docker repositories by duplicating parts of previous ones, or
+* often create scripts with names like `run.sh` to launch containers during development.
 
 ## Demonstration
 
