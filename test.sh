@@ -150,9 +150,9 @@ for template_repository in ${template_repositories[*]}; do
   test run workspace/target.sh
 
   test_name="${template_repository}: pip package installation"
-  printf "plato_cat" > build/pip3-requirements.txt
+  printf "pip-date" > build/pip3-requirements.txt
   build
-  test run workspace/target.sh
+  test run "pip-date | grep 'Done!' && /workspace/target.sh"
 
   cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
 done

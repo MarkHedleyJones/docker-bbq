@@ -1,12 +1,6 @@
 
 # Install Python-PIP packages (if any)
 COPY build/tmp/pip /build/pip
-RUN if [ -s /build/pip/pip_requirements.txt ] ; then \
-    pip install -r /build/pip/pip_requirements.txt ; \
-fi && \
-if [ -s /build/pip/pip2_requirements.txt ] ; then \
-    pip2 install -r /build/pip/pip2_requirements.txt ; \
-fi && \
-if [ -s /build/pip/pip3_requirements.txt ] ; then \
-    pip3 install -r /build/pip/pip3_requirements.txt ; \
-fi
+RUN if [ ! -z $(ls /build/pip) ] ; then for path in /build/pip/pip*-req*.txt ; \
+  do $(basename ${path} | cut -d '-' -f 1) install -r ${path} ; done ; fi
+
