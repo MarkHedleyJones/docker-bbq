@@ -602,7 +602,7 @@ KeyStrRelease r
 Delay 153
 KeyStrPress y
 KeyStrRelease y
-Delay 3000
+Delay 2000
 KeyStrPress period
 KeyStrRelease period
 Delay 248
@@ -965,7 +965,7 @@ KeyStrRelease d
 Delay 144
 KeyStrPress Return
 KeyStrRelease Return
-Delay 2008
+Delay 300
 KeyStrPress Shift_L
 Delay 128
 KeyStrPress 3
@@ -1053,14 +1053,19 @@ Delay 4000
 Delay 2096
 KeyStrPress c
 KeyStrRelease c
+Delay 1
 KeyStrPress l
 KeyStrRelease l
+Delay 1
 KeyStrPress e
 KeyStrRelease e
+Delay 1
 KeyStrPress a
 KeyStrRelease a
+Delay 1
 KeyStrPress r
 KeyStrRelease r
+Delay 1
 KeyStrPress Return
 KeyStrRelease Return
 Delay 120
@@ -1195,6 +1200,9 @@ KeyStrRelease c
 Delay 160
 KeyStrPress e
 KeyStrRelease e
+Delay 160
+KeyStrPress period
+KeyStrRelease period
 Delay 224
 KeyStrPress Return
 KeyStrRelease Return

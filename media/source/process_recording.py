@@ -52,6 +52,8 @@ for input_script in input_scripts:
                 delay = 250
             elif last_key == "Super_L":
                 delay = 5000
+            elif delay == 1:
+                delay = 30
             else:
                 delay = min(delay, 300)
                 delay = int(delay/3)
