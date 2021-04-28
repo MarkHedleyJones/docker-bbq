@@ -153,6 +153,15 @@ for template_repository in ${template_repositories[*]}; do
   printf "pip-date" > build/pip3-requirements.txt
   build
   test run "pip-date | grep 'Done!' && /workspace/target.sh"
+  rm build/pip3-requirements.txt
+
+  test_name="${template_repository}: external uri fetching"
+  base_url="https://raw.githubusercontent.com/MarkHedleyJones/docker-bbq/main"
+  printf "${base_url}/LICENSE\n${base_url}/README.md\n" > build/urilist
+  build
+  test run "cat /build/resources/LICENSE | grep 'MIT License' && \
+            cat /build/resources/README.md | grep '# docker-bbq' && \
+            /workspace/target.sh"
 
   cd "${path_test}" || exit 1 && rm -rf "${test_repo_name}"
 done
