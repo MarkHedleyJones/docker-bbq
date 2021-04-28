@@ -3,7 +3,7 @@
 	@cat $(CURDIR)/build/packagelist | sort --unique | sed '/^\s*$$/d' > $(CURDIR)/build/tmp/packagelist
 	@cp $(CURDIR)/build/tmp/packagelist $(CURDIR)/build/packagelist
 	# Detecting Python requirements ...
-	@mkdir build/tmp/pip
+	@mkdir -p build/tmp/pip
 	@reqs="$(shell ls build | grep "pip[2-3]\?-requirements.txt" | cut -d '-' -f 1 | sed 's/pip/python/')" \
 		&& if [ ! -z "$$reqs" ] ; then cd build && cp pip*-requirements.txt tmp/pip && for py in $$reqs ; do \
 		printf "$${py}-pip\n$${py}-wheel\n$${py}-setuptools\n" >> tmp/packagelist ; done ; fi
