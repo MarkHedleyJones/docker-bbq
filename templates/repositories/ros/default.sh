@@ -23,7 +23,7 @@ makefile_componets=(
   buildstage-production-body
   buildstage-prebuild
   buildstage-prebuild-body
-  ros/buildstage-prebuild-tail
+  ros/buildstage-prebuild
   buildstage-postbuild
   buildstage-postbuild-body
 )
