@@ -6,6 +6,7 @@ dockerfile_componets=(
   file-header
   install-apt-packages
   install-pip-packages
+  copy-local-resources
   target-development
   target-development-body
   target-preproduction

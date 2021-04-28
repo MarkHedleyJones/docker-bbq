@@ -71,6 +71,7 @@ if [ "${enable_git}" == '1' ]; then
 fi
 mkdir "${repo_name}"/build
 mkdir "${repo_name}"/workspace
+mkdir "${repo_name}"/build/resources
 touch "${repo_name}"/build/packagelist
 
 # Generate the dockerfile from the components listed in the template
