@@ -148,6 +148,14 @@ for template_repository in ${template_repositories[*]}; do
   printf "htop\nranger" > build/packagelist
   build
   test run workspace/target.sh
+  printf " - "
+  printf "%-35s" "${template_repository}: checking packagelist intact"
+  printf " ... "
+  cat build/packagelist | grep htop > /dev/null
+  if [ $? -eq 0 ]; then echo -e "\e[32mSUCCESS\e[0m" ; else
+    echo -e "\e[31mFAILED\e[0m"
+    exit 1
+  fi
 
   test_name="${template_repository}: pip package installation"
   printf "pip-date" > build/pip3-requirements.txt
