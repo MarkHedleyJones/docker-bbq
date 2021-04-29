@@ -3,4 +3,4 @@
 		--workdir=$(WORKDIR) \
 		$(BASE_IMAGE) \
 		/bin/bash -c "rosdep install --simulate --from-paths catkin_ws/src --ignore-src -y" \
-		| awk '{if(NR>1)print}' | cut -d ' ' -f 6 > $(CURDIR)/build/packagelist
+		| awk '{if(NR>1)print}' | cut -d ' ' -f 6 >> $(CURDIR)/build/tmp/packagelist
