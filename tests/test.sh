@@ -147,23 +147,33 @@ fail() {
   return $?
 }
 
-# Ensure there are no containers running from abandoned tests
-docker rm /test-latest > /dev/null 2>&1
-# TODO: Why does the contaner name start with a slash?
-
-for filename in ${test_sequence[*]}; do
+clean() {
+  # Reset output/formatting variables
   subheading_spacer=''
   num_tests_subtotal=0
   passed_tests_subtotal=0
+
+  # Regenerate clean test directories
   rm -rf ${TESTDIR}
   mkdir -p ${TESTDIR}
   cd ${TESTDIR}
+
+  # Kill any already running containers with the TESTREPO's name
+  running="$(docker ps --quiet --filter name="${TESTREPO}")"
+  if [ ! -z "${running}" ]; then
+    docker kill "${running}"
+  fi
+}
+
+for filename in ${test_sequence[*]}; do
+  clean
   heading "Running ${filename%.sh} tests ... "
   source "${BASEDIR}/tests/definitions/${filename}"
   echo "   Completed: ${passed_tests_subtotal} / ${num_tests_subtotal} test(s) passed"
   ((num_tests_total=num_tests_total+num_tests_subtotal))
   ((passed_tests_total=passed_tests_total+passed_tests_subtotal))
 done
+
 echo ""
 echo "Testing completed - ${passed_tests_total} / ${num_tests_total} test(s) passed"
 if [ ${passed_tests_total} -eq ${num_tests_total} ] ; then
