@@ -6,7 +6,8 @@ width_of_test_titles=40
 
 BASEDIR="$( cd "$( dirname "$(dirname "${BASH_SOURCE[0]}")")" >/dev/null 2>&1 && pwd )"
 TESTDIR="/tmp/docker-bbq/temporary"
-DEBUG=0
+verbosity=0
+abort_on_failure=0
 
 test_sequence=(
   create-repo.sh
@@ -26,25 +27,31 @@ OPTIONS:
   -v, --verbose    Print debug information on test failure
   -a, --all        Run standard and template repository tests
   -t, --templates  Run only the template reposistory tests
+  -d, --debug      Abort on first failure and don't clean-up
+
+  --template <template-name>
+                   Run only the tests against the specified template name
 EOF
   exit
 }
 
-if [[ " --help " =~ " $* " ]] || [[ " -h " =~ " $* " ]]; then
-  usage
-fi
+# Used to specify a specific template to test
+test_template=NULL
 
-if [[ " --verbose " =~ " $* " ]] || [[ " -v " =~ " $* " ]]; then
-  DEBUG=1
-fi
-
-if [[ " --templates " =~ " $* " ]] || [[ " -t " =~ " $* " ]]; then
-  test_sequence=(templates.sh)
-fi
-
-if [[ " --all " =~ " $* " ]] || [[ " -a " =~ " $* " ]]; then
-  test_sequence+=(templates.sh)
-fi
+# Parse parameters
+while :; do
+  case "${1-}" in
+  -h | --help) usage ;;
+  -v | --verbose) verbosity=1 ;;
+  -t | --templates) test_sequence=(templates.sh) ;;
+  -t | --template) test_sequence=(templates.sh) && test_template=$2 && shift ;;
+  -d | --debug) abort_on_failure=1 ;;
+  -a | --all) test_sequence+=(templates.sh) ;;
+  -?*) error "Unknown option: $1" ;;
+  *) break ;;
+  esac
+  shift
+done
 
 
 # The following variables are available to testfiles
@@ -101,7 +108,7 @@ run_test() {
   ((num_tests_subtotal=num_tests_subtotal+1))
   name=NULL
   output=$(cat "${TESTDIR}/output")
-  if [ ${success} -eq 0 ] && [ ${DEBUG} -eq 1 ]; then
+  if [ ${success} -eq 0 ] && [ ${verbosity} -eq 1 ]; then
     if [ -s "${TESTDIR}/output" ]; then
 
       printf "\n######### DEBUG OUTPUT FROM FAILED TEST START #########\n"
@@ -110,6 +117,11 @@ run_test() {
     else
       echo "   FAILED TEST PRODUCED NO DEBUG OUTPUT"
     fi
+  fi
+  if [[ ${success} -eq 0 ]] && [[ ${abort_on_failure} -eq 1 ]]; then
+    echo "Aborting on failure due to --debug flag"
+    echo "State on failure can be found at ${TESTDIR}"
+    exit 1
   fi
   return ${success}
 }
