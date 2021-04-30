@@ -26,14 +26,14 @@ for repository in ${repositories[*]}; do
   pass 'make production'
 
   name="System package installation"
-  printf "htop\nranger" > build/packagelist
+  printf "tinyproxy\nranger" > build/packagelist
   pass make
 
   name="System packages installed"
-  pass 'run ranger --version | grep "ranger version: ranger"'
+  pass 'run tinyproxy -v | grep "tinyproxy"'
 
   name="Packagelist intact after build"
-  pass 'cat build/packagelist | grep htop > /dev/null'
+  pass 'cat build/packagelist | grep tinyproxy > /dev/null'
   echo "" > build/packagelist
 
   printf "pip-date\ntiny" > build/pip3-requirements.txt

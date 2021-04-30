@@ -8,6 +8,11 @@ dirname_workspace="workspace"
 verbosity=0
 interactive=1
 
+# Allow disabling interactive/tty mode via environment variable (for CI)
+if [ ${DOCKER_BBQ_NON_INTERACTIVE} ]; then
+  interactive=0
+fi
+
 testing() {
   if [[ "${TESTING}" != "False" ]]; then
     if [[ $# -eq 2 ]]; then
