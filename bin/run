@@ -165,20 +165,23 @@ if [[ "${image}" != "NULL" ]]; then
 else
   if [[ $# -eq 0 ]]; then
     error "Could not find a docker-bbq repository in this working tree"
-  elif [[ -d "$1" ]] || [[ -f "$1" ]]; then
-    # The user passed a path
+  elif [[ "$1" =~ '/' ]]; then
+    # Assume that if there's a slash that this is a path to a target file.
+    # Don't check for it's existance on the host because it may only exist
+    # in the image (true of production images or files created during build).
     find_repo_name "$1"
+    testing "The image was determined as ${image}"
     if [[ "${image}" != "NULL" ]]; then
       tag="latest"
       set_container_name "${image}" "${tag}"
       set_workspace_path "${repository_path}/${dirname_workspace}"
-      if [[ -f "$1" ]]; then
-        # User has specified a specifc file,  so execute that
-        testing "target argument is a file"
-        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
-      elif [[ -d "$1" ]]; then
+      if [[ -d "$1" ]]; then
         testing "target argument is a directory"
         container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
+      else
+        # Assume user has specified a specifc file,  so execute that
+        testing "target argument is a file"
+        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
       fi
       # Remove the processed argument ($1) as it has been processed
       shift
@@ -186,6 +189,7 @@ else
       error "Could not find a docker-bbq repository at (or above) $1"
     fi
   else
+    testing "First argument is not a path..."
     get_docker_images
     parse_image_and_tag_input "${1}"
     shift
