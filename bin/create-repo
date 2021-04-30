@@ -76,7 +76,7 @@ touch "${repo_name}"/build/packagelist
 
 # Generate the dockerfile from the components listed in the template
 dockerfile=""
-for component in ${dockerfile_componets[*]}; do
+for component in ${dockerfile_components[*]}; do
   if [[ " ${component} " =~ "/" ]]; then
     component_path="${path_repositories}/${component}"
   else
@@ -92,7 +92,7 @@ echo "${dockerfile}" | head -c -1 > "${repo_name}/Dockerfile"
 # Generate the makefile from the components listed in the template
 makefile="BASE_IMAGE ?= ${repository}:${tag}"
 makefile+=$'\n'
-for component in ${makefile_componets[*]}; do
+for component in ${makefile_components[*]}; do
   if [[ " ${component} " =~ "/" ]]; then
     component_path="${path_repositories}/${component}"
   else
