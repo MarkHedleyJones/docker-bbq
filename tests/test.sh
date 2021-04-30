@@ -125,6 +125,7 @@ run_test() {
     else
       echo "   FAILED TEST PRODUCED NO DEBUG OUTPUT"
     fi
+    echo "Test command: $*"
   fi
   if [[ ${success} -eq 0 ]] && [[ ${abort_on_failure} -eq 1 ]]; then
     echo "Aborting on failure due to --debug flag"
