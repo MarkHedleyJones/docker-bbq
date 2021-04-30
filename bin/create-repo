@@ -39,7 +39,7 @@ check_supported() {
     for available_repo in ${repositories[*]}; do
       echo " ${available_repo}"
     done
-    exit
+    exit 1
   fi
 }
 
