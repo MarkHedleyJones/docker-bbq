@@ -1,2 +1,2 @@
 	# Cleaning up temporary files/folders ...
-	@rm -rf $(CURDIR)/build/tmp
+	@rm -rf build/tmp
