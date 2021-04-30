@@ -254,7 +254,7 @@ if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
 fi
 
 # Detect which shell is installed in the image
-shell=$(docker run --rm ${image}:${tag} sh -c 'command -v bash || command -v sh')
+shell=$(docker run --entrypoint "" --rm ${image}:${tag} sh -c 'command -v bash || command -v sh')
 
 docker_command="${shell}"
 if [[ "${command}" != "" ]]; then
