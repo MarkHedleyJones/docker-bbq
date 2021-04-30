@@ -297,7 +297,6 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
   eval "docker run \
-    --hostname ${image} \
     --name ${container_name} \
     --net host \
     --privileged \
