@@ -2,5 +2,5 @@
 # Install Python-PIP packages (if any)
 COPY build/tmp/pip /build/pip
 RUN if [ ! -z $(ls /build/pip) ] ; then for path in /build/pip/pip*-req*.txt ; \
-  do $(basename ${path} | cut -d '-' -f 1) install -r ${path} ; done ; fi
+  do $(basename ${path} | cut -d '-' -f 1) install --no-cache-dir -r ${path} ; done ; fi
 
