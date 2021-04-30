@@ -286,6 +286,10 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     docker_args_display+="-v ${xsock}:${xsock}:rw "
     docker_args_display+="--env QT_X11_NO_MITSHM=1 "
 
+    if [ -d /dev/dri ]; then
+      # Expose direct rendering interface
+      docker_args_display+="--device /dev/dri:/dev/dri "
+    fi
     if command -v nvidia-smi > /dev/null; then
       # Enable Nvidia specific features
       docker_args_display+="--gpus=all "
