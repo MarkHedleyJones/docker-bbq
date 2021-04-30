@@ -296,8 +296,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   # Setup the user
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
-  eval "docker run \
-    --hostname ${image} \
+  command="docker run \
     --name ${container_name} \
     --net host \
     --privileged \
@@ -310,6 +309,9 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_args_workdir} \
     ${image}:${tag} \
     ${docker_command}"
+
+  testing "${command}"
+  eval "${command}"
 
   if [[ ${image_workspace} != "" ]]; then
     # Recursively set permissions of workspace folder
