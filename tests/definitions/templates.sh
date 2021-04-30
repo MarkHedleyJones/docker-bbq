@@ -16,9 +16,9 @@ fi
 for repository in ${repositories[*]}; do
   subheading "${repository} template"
   name="Create repository"
-  pass 'create-repo "${repository}" test'
+  pass 'create-repo "${repository}" ${TESTREPO}'
 
-  cd test
+  cd ${TESTREPO}
   name="Build development image"
   pass 'make'
 
@@ -56,13 +56,13 @@ for repository in ${repositories[*]}; do
             /workspace/target.sh"'
 
   # Clean-up
-  cd ${base_dir} && rm -rf test
+  cd ${base_dir} && rm -rf ${TESTREPO}
 
   # Run any tests defined in the template
   template_testscript="${repositories_dir}/${repository}/tests.sh"
   if [ -f ${template_testscript} ]; then
     source ${template_testscript}
     # Clean-up (again)
-    cd ${base_dir} && rm -rf test
+    cd ${base_dir} && rm -rf ${TESTREPO}
   fi
 done

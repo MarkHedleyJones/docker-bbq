@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-create-repo debian test > /dev/null 2>&1
-cd test
+create-repo debian ${TESTREPO} > /dev/null 2>&1
+cd ${TESTREPO}
 
 name="Building development image (debian)"
 pass make

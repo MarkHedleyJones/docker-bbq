@@ -4,10 +4,17 @@ set -u
 
 width_of_test_titles=40
 
+test_basedir="/tmp/docker-bbq"
+
 BASEDIR="$( cd "$( dirname "$(dirname "${BASH_SOURCE[0]}")")" >/dev/null 2>&1 && pwd )"
-TESTDIR="/tmp/docker-bbq/temporary"
+TESTDIR="${test_basedir}/temporary"
+TESTREPO="test"
+
 verbosity=0
 abort_on_failure=0
+
+rm -rf ${test_basedir}
+mkdir -p ${test_basedir}
 
 test_sequence=(
   create-repo.sh
@@ -56,6 +63,7 @@ done
 
 # The following variables are available to testfiles
 export TESTDIR
+export TESTREPO
 
 # Override locations to remove need for installation before test
 create-repo() {

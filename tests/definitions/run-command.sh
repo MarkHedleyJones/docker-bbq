@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 
-create-repo debian test > /dev/null 2>&1
-cd test
+create-repo debian ${TESTREPO} > /dev/null 2>&1
+cd ${TESTREPO}
 repo_path=$(pwd)
 
 test_sequence() {
   name="Run command in container"
-  pass 'run rm --help | grep "Remove (unlink) the FILE(s)."'
+  pass "run rm --help | grep 'Remove (unlink) the FILE(s).'"
 
   name="Run target from outside workspace"
-  pass 'run workspace/target.sh | grep boom'
+  pass "run workspace/target.sh | grep boom"
 
   cd "${repo_path}/workspace"
   name="Run target from inside workspace"
-  pass 'run ./target.sh | grep boom'
+  pass "run ./target.sh | grep boom"
 
   cd /tmp
   name="Run target outside repo - single command"
-  pass 'run ${repo_path}/workspace/target.sh | grep boom'
+  pass "run ${repo_path}/workspace/target.sh | grep boom"
 
   name="Run target outside repo - split command"
-  pass 'run ${repo_path} /workspace/target.sh | grep boom'
+  pass "run ${repo_path} /workspace/target.sh | grep boom"
 }
 
 # Standard
