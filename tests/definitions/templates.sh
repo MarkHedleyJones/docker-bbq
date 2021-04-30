@@ -2,7 +2,18 @@
 
 repositories_dir="${BASEDIR}/templates/repositories"
 base_dir=$(pwd)
-for repository in $(ls ${repositories_dir}); do
+
+if [ ${test_template} == NULL ]; then
+  repositories=($(ls ${repositories_dir}))
+else
+  if [ ! -d "${BASEDIR}/templates/repositories/${test_template}" ]; then
+    echo "Error: No template named ${test_template}"
+    exit 1
+  fi
+  repositories=(${test_template})
+fi
+
+for repository in ${repositories[*]}; do
   subheading "${repository} template"
   name="Create repository"
   pass 'create-repo "${repository}" test'
@@ -19,7 +30,7 @@ for repository in $(ls ${repositories_dir}); do
   pass make
 
   name="System packages installed"
-  pass 'run ranger --help | grep "Usage: ranger"'
+  pass 'run ranger --version | grep "ranger version: ranger"'
 
   name="Packagelist intact after build"
   pass 'cat build/packagelist | grep htop > /dev/null'
@@ -46,4 +57,12 @@ for repository in $(ls ${repositories_dir}); do
 
   # Clean-up
   cd ${base_dir} && rm -rf test
+
+  # Run any tests defined in the template
+  template_testscript="${repositories_dir}/${repository}/tests.sh"
+  if [ -f ${template_testscript} ]; then
+    source ${template_testscript}
+    # Clean-up (again)
+    cd ${base_dir} && rm -rf test
+  fi
 done
