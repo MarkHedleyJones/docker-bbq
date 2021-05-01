@@ -8,7 +8,6 @@ This tool might be useful if you:
 1. are rebuilding your images after modifying source-code.
 
 ## Demonstration
-
 <p align="center">
   <img src="https://raw.github.com/markhedleyjones/docker-bbq/master/media/demo.gif" alt="docker-bbq demonstration"/>
 </p>
@@ -17,29 +16,28 @@ This tool might be useful if you:
 * Executing containerised code becomes frictionless with the `run` command.
 * Create new repositories with `create-repo`. They're instantly buildable and have a consistent layout.
 * Workspace linking during development means changes to source-code appear instantly inside containers.
-* Write your dependencies in lists and they'll be installed automatically at build-time:
-  - System packages (`build/packagelist`)
-  - Python-pip packages (`build/pip-requirements.txt`), or specify the pip version with `pipX-requirements.txt`
-  - Downloadable resources (`buiid/urilist`)
-* All templates use a consistent architecture, ensuring they're still familiar when you return in future.
-* All templates have a special *production* build-mode which creates stand-alone, distributable images.
-
+* Building your image is as simple running `make` from within your workspace.
+* Create dependency lists and they'll be installed automatically at build-time:
+  - System packages - `build/packagelist`
+  - Python-pip packages  - `build/pip-requirements.txt` (specify pip version e.g. `pip3-requirements.txt`)
+  - Downloadable resources - `build/urilist`
+* When it's time to deploy, running `make production` builds the final stand-alone, distributable image.
 
 ## Overview
 There are two components to docker-bbq.
 The first is `create-repo`, which can be used to make templated docker-bbq repositories.
 The second is the `run` command, which makes interacting and developing your Docker project quick and easy.
 
-### `run` - under the hood:
+### The 'run' command:
 Executing something in your docker-bbq repository (from anywhere on the host) using `run <command>` does the following steps:
-1. Determine the image/project name by crawling up the path tree to find the relevant Dockerfile.
-2. Check if the target container is already running. If yes, `<command>` will be executed inside it. If not, a new one will be created.
-3. Check if the repository is in the "development state". If yes, the repository's workspace will be mounted into the new container.
-4. Detect the host system's display capabilities and configure forwarding of graphical programs from the container.
-5. Launch a new container, or enter the existing one, and execute `<command>`.
+1. Determines the required image/project based on `<command>` or your location.
+2. Checks if the required container is already running. If yes, `<command>` will be executed inside it. If not, a new one will be created.
+3. Checks if the repository is in the "development state". If yes, the repository's workspace will be mounted into the new container.
+4. Detects the host system's display capabilities and configures the container accordingly.
+5. Launches a new container, or enters the existing one, and executes `<command>`.
 6. After the container exits, ownership of files created in the container will be changed to your username.
 
-### Templated repository structure:
+### Repository structure:
 The basic structure of a docker-bbq repository is as follows (although depends on the template you select)
 ```
 <project-name>
@@ -48,7 +46,7 @@ The basic structure of a docker-bbq repository is as follows (although depends o
 │   │
 │   ├─ packagelist                # List of system packages to install
 │   │
-│   └─ <build-reated-files>       # For example, pip-requirements.txt
+│   └─ <build-related-files>      # For example, pip-requirements.txt
 │
 ├─► workspace
 │   │
@@ -56,7 +54,7 @@ The basic structure of a docker-bbq repository is as follows (although depends o
 │
 ├─ Dockerfile
 │
-├─ Makefile                       # make-based build helper
+├─ Makefile                       # Make-based build helper
 │
 └─ README.md                      # Pre-populated with build instructions
 ```
