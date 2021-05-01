@@ -1,4 +1,4 @@
-# docker-bbq
+<h1>docker-bbq<br><img alt="docker-bbq" src="https://github.com/MarkHedleyJones/docker-bbq/raw/d71aa959ea69b5ced85b670ea92dcc4cd11f87f1/media/bbq.svg"></h1>
 
 A tool for rapidly cooking up new [Docker](https://www.docker.com/) projects while simplifying containerised software development.
 
@@ -53,3 +53,7 @@ The repository includes a `make`-based Makefile to simplify the build process.
 There are two options for building your project:
 1. `make` - Builds the development image. Allows for faster development as the image's workspace *is* the repository's workspace.
 2. `make production` - Builds the production image. Ready to be shipped, the image contains its own workspace.
+
+---
+
+docker-bbq logo made with vector graphics from [svgrepo.com](https://www.svgrepo.com/svg/288987/fire) (creative-commons license), with modifications.
