@@ -2,7 +2,7 @@
 
 tag=${tag:-latest}
 
-dockerfile_componets=(
+dockerfile_components=(
   file-header
   install-apk-packages
   install-pip-packages
@@ -15,7 +15,7 @@ dockerfile_componets=(
   target-production-body
 )
 
-makefile_componets=(
+makefile_components=(
   file-header
   buildstage-development
   buildstage-development-body

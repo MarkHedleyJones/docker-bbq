@@ -74,54 +74,36 @@ mkdir "${repo_name}"/workspace
 mkdir "${repo_name}"/build/resources
 touch "${repo_name}"/build/packagelist
 
-# Generate the dockerfile from the components listed in the template
-dockerfile=""
-for component in ${dockerfile_componets[*]}; do
-  if [[ " ${component} " =~ "/" ]]; then
-    component_path="${path_repositories}/${component}"
-  else
-    component_path="${path_templates}/components/dockerfile/${component}"
+compile_file() {
+  filetype=$1
+  if [[ "${file}" != "" ]]; then
+    file+=$'\n'
   fi
-  if [[ -s "${component_path}" ]]; then
-    dockerfile+="$(cat "${component_path}" | sed '${/^$/d;}')"
-    dockerfile+=$'\n'
-  fi
-done
-echo "${dockerfile}" | head -c -1 > "${repo_name}/Dockerfile"
+  eval "components=\"\${${filetype}_components[*]}\""
+  for component in ${components}; do
+    if [[ " ${component} " =~ "/" ]]; then
+      component_path="${path_repositories}/${component}"
+    else
+      component_path="${path_templates}/components/${filetype}/${component}"
+    fi
+    if [[ -s "${component_path}" ]]; then
+      file+="$(cat "${component_path}" | sed '${/^$/d;}')"
+      file+=$'\n'
+    fi
+  done
+}
 
-# Generate the makefile from the components listed in the template
-makefile="BASE_IMAGE ?= ${repository}:${tag}"
-makefile+=$'\n'
-for component in ${makefile_componets[*]}; do
-  if [[ " ${component} " =~ "/" ]]; then
-    component_path="${path_repositories}/${component}"
-  else
-    component_path="${path_templates}/components/makefile/${component}"
-  fi
-  if [[ -s "${component_path}" ]]; then
-    makefile+="$(cat "${component_path}" | sed '${/^$/d;}')"
-    makefile+=$'\n'
-  fi
-done
-echo "${makefile}" | head -c -1 > "${repo_name}/Makefile"
+file=""
+compile_file "dockerfile"
+echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-# Generate the makefile from the components listed in the template
-readme=""
-for component in ${readme_components[*]}; do
-  if [[ "${component}" = "file-header" ]]; then
-    readme+="# ${repo_name}"
-  fi
-  if [[ " ${component} " =~ "/" ]]; then
-    component_path="${path_repositories}/${component}"
-  else
-    component_path="${path_templates}/components/readme/${component}"
-  fi
-  if [[ -s "${component_path}" ]]; then
-    readme+=$'\n\n'
-    readme+="$(cat "${component_path}")"
-  fi
-done
-echo "${readme}" > "${repo_name}"/README.md
+file="BASE_IMAGE ?= ${repository}:${tag}"
+compile_file "makefile"
+echo "${file}" | head -c -1 > "${repo_name}/Makefile"
+
+file="# ${repo_name}"
+compile_file "readme"
+echo "${file}" | head -c -1 > "${repo_name}/README.md"
 
 # Generate .dockerignore
 cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
