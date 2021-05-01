@@ -29,12 +29,12 @@ The first is `create-repo`, which can be used to make templated docker-bbq repos
 The second is the `run` command, which makes interacting and developing your Docker project quick and easy.
 
 ### The 'run' command:
-Executing something in your docker-bbq repository (from anywhere on the host) using `run <command>` does the following steps:
-1. Determines the required image/project based on `<command>` or your location.
-2. Checks if the required container is already running. If yes, `<command>` will be executed inside it. If not, a new one will be created.
+The `run` command lets you seamlessly execute things in your repository's workspace seamlessly. As an example, when running something like `run ~/my-bbq-repo/workspace/hello_world.py`, `run` does the following:
+1. Determines the required image based on the command or your location (the repo and image names always match, so in this case it's *my-bbq-repo:latest*).
+2. Checks if the required container is already running. If yes, the command will be executed inside it. If not, a new one will be created.
 3. Checks if the repository is in the "development state". If yes, the repository's workspace will be mounted into the new container.
 4. Detects the host system's display capabilities and configures the container accordingly.
-5. Launches a new container, or enters the existing one, and executes `<command>`.
+5. Launches a new container, or enters the existing one, and executes `hello_world.py`.
 6. After the container exits, ownership of files created in the container will be changed to your username.
 
 ### Repository structure:
