@@ -1,5 +1,5 @@
 
-# Install APT packages (if any)
+# Install APT packages (if any) from packagelist
 COPY build/tmp/packagelist /build/packagelist
 RUN if [ -s /build/packagelist ] ; then \
     apt-get update \
