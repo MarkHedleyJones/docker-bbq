@@ -1,11 +1,8 @@
 
-# Install APT packages (if any)
+# Install APT packages (if any) from packagelist
 COPY build/tmp/packagelist /build/packagelist
 RUN if [ -s /build/packagelist ] ; then \
     apt-get update \
     && apt-get install --yes --no-install-recommends $(cat /build/packagelist | xargs) \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "System package(s) installed" ; \
-else \
-    echo "Packagelist is empty" ; \
+    && rm -rf /var/lib/apt/lists/* ; \
 fi

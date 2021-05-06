@@ -3,7 +3,6 @@
 TESTING="${TESTING:=False}"
 
 # The path to check for contanier specific workspaces
-path_global_workspace="/home/${USER}/workspaces"
 dirname_workspace="workspace"
 verbosity=0
 interactive=1
@@ -213,7 +212,6 @@ else
           image=${parts[0]}
           tag="latest"
           set_container_name "${image}" "${tag}"
-          set_workspace_path "${path_global_workspace}/${image}"
         else
           error "Could not find the docker image ${input_image}:${input_tag}"
         fi
@@ -258,10 +256,6 @@ docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
 
 docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
-  if [[ "${path_global_workspace}" == "USED" ]] && [[ ! -d ${local_workspace} ]]; then
-    mkdir "${local_workspace}"
-    info "Created global workspace folder at ${local_workspace}"
-  fi
   docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
