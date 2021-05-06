@@ -4,5 +4,9 @@
 		--build-arg WORKDIR=$(WORKDIR) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
-	@echo "This file enables automatic workspace mounting during development" > .docker-bbq
-	@echo "Development image built - automatic workspace mounting enabled for $(IMAGE_NAME)"
+	@echo "This file enables development features for this repository" > .docker-bbq
+	@echo "Development image built - the following features will been enabled:"
+	@echo " - Automatic workspace mounting"
+	@echo " - Privileged container mode"
+	@echo "WARNING: Running privileged containers can be dangerous!"
+	@echo "         Only run development images if you trust them"

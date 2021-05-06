@@ -6,6 +6,7 @@ TESTING="${TESTING:=False}"
 dirname_workspace="workspace"
 verbosity=0
 interactive=1
+repo_in_dev_state=0
 
 # Allow disabling interactive/tty mode via environment variable (for CI)
 if [ ${DOCKER_BBQ_NON_INTERACTIVE} ]; then
@@ -90,8 +91,9 @@ set_workspace_path() {
   fi
   if [[ "${repository_path}" != "" ]]; then
     if [[ -f "${repository_path}/.docker-bbq" ]]; then
-      local_workspace="${1}"
       image_workspace="/${dirname_workspace}"
+      local_workspace="${1}"
+      repo_in_dev_state=1
     else
       info "Repository does not contain a .docker-bbq file" \
            "- no workspace will be mounted"
@@ -155,7 +157,7 @@ find_repo_name "$(pwd)"
 testing "image-from-working-dir" "${image}"
 
 container_workdir="/${dirname_workspace}"
-command=""
+user_command=""
 
 if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-bbq repository
@@ -185,7 +187,7 @@ else
       else
         # Assume user has specified a specifc file,  so execute that
         testing "target argument is a file"
-        command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
+        user_command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
       fi
       # Remove the processed argument ($1) as it has been processed
       shift
@@ -220,12 +222,12 @@ else
   fi
 fi
 
-# Collect the remaining arguments as the command
+# Collect the remaining arguments as the user_command
 if [[ $# -gt 0 ]]; then
-  if [[ "${command}" != "" ]]; then
-    command+=" "
+  if [[ "${user_command}" != "" ]]; then
+    user_command+=" "
   fi
-  command+="$*"
+  user_command+="$*"
 fi
 
 testing "image" "${image}"
@@ -234,7 +236,8 @@ testing "container_name" "${container_name}"
 testing "local_workspace" "${local_workspace}"
 testing "image_workspace" "${image_workspace}"
 testing "container_workdir" "${container_workdir}"
-testing "command" "${command}"
+testing "user_command" "${user_command}"
+testing "repo_in_dev_state" ${repo_in_dev_state}
 
 docker_args_workdir+="--workdir=${container_workdir} "
 if [[ "${image_workspace}" != "" ]]; then
@@ -260,8 +263,8 @@ fi
 shell=$(docker run --entrypoint "" --rm ${image}:${tag} sh -c 'command -v bash || command -v sh')
 
 docker_command="${shell}"
-if [[ "${command}" != "" ]]; then
-  docker_command="${shell} -cl \"${command}\""
+if [[ "${user_command}" != "" ]]; then
+  docker_command="${shell} -cl \"${user_command}\""
 fi
 
 docker_args_interactive=""
@@ -303,11 +306,16 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   # Setup the user
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
+  docker_args_privileged=""
+  if [[ ${repo_in_dev_state} -eq 1 ]]; then
+    docker_args_privileged="--privileged "
+  fi
+
   command="docker run \
     --name ${container_name} \
-    --net host \
-    --privileged \
     --rm \
+    --net host \
+    ${docker_args_privileged} \
     ${docker_args_interactive} \
     ${docker_args_bash_history} \
     ${docker_args_display} \
@@ -318,25 +326,35 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_command}"
 
   testing "${command}"
-  eval "${command}"
 
-  if [[ ${image_workspace} != "" ]]; then
-    # Recursively set permissions of workspace folder
-    fix_permission_command="chown --recursive "
-    fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
+  if [[ "${TESTING}" == "False" ]]; then
 
-    eval "docker run \
-      --rm \
-      --entrypoint="" \
-      ${docker_args_mount_workdir} \
-      ${image}:${tag} \
-      ${shell} -c '${fix_permission_command}'"
+    eval "${command}"
+
+    if [[ ${image_workspace} != "" ]]; then
+      # Recursively set permissions of workspace folder
+      fix_permission_command="chown --recursive "
+      fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
+
+      eval "docker run \
+        --rm \
+        --entrypoint="" \
+        ${docker_args_mount_workdir} \
+        ${image}:${tag} \
+        ${shell} -c '${fix_permission_command}'"
+    fi
   fi
 else
   info "Running in existing container (${image}:${tag})"
-  eval docker exec \
-    "${docker_args_interactive}" \
-    "${docker_args_workdir}" \
-    "${container_name}" \
-    "${docker_command}"
+  command="docker exec \
+    ${docker_args_interactive} \
+    ${docker_args_workdir} \
+    ${container_name} \
+    ${docker_command}"
+
+  testing "${command}"
+
+  if [[ "${TESTING}" == "False" ]]; then
+    eval "${command}"
+  fi
 fi
