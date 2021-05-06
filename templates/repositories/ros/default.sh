@@ -7,6 +7,7 @@ dockerfile_components=(
   install-apt-packages
   install-pip-packages
   copy-local-resources
+  ros/target-base-footer
   target-development
   ros/target-development-body
   target-preproduction
