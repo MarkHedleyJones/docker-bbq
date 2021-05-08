@@ -32,13 +32,17 @@ EOF
   exit
 }
 
+show_supported() {
+  echo "How about starting with one of these templates:"
+  for available_repo in ${repositories[*]}; do
+    echo " ${available_repo}"
+  done
+}
+
 check_supported() {
   if [[ ! " ${repositories[*]} " =~ " $1 " ]]; then
     echo "Sorry, there is no template for $1"
-    echo "How about starting with one of these templates:"
-    for available_repo in ${repositories[*]}; do
-      echo " ${available_repo}"
-    done
+    show_supported
     exit 1
   fi
 }
@@ -46,6 +50,19 @@ check_supported() {
 if [[ $# -eq 0 ]]; then
   usage
 fi
+
+for i in "$@"
+do
+case $i in
+    --help|-h)
+    usage
+    ;;
+    --list|-l)
+    show_supported
+    exit
+    ;;
+esac
+done
 
 repository="$1"
 
