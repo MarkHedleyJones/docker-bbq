@@ -9,33 +9,50 @@ paths_to_try=(
   "/home/${USER}/bin"
 )
 
+install_path=NULL
 for path in ${paths_to_try[*]}; do
-  echo "Checking for local binary path at ${path} ... "
-  if [[ -d ${path} ]]; then
-    for script in ${scripts[*]}; do
-      if [[ -f ${path}/${script} ]]; then
-        echo "The '${script}' script is already exists at this location"
-      else
-        ln -sf "${script_dir}/bin/${script}" "${path}/${script}"
-        echo "Created link to '${script}'"
-      fi
-    done
-    test=$(export | grep \$PATH | grep "${path}" > /dev/null)
-    if [[ ${test} -ne 0 ]]; then
-      echo "The installed path (${path}) does not appear in you \$PATH environment variable"
-      echo "Please include the followng line in your shell's startup script (e.g. .bashrc, .zshrc)"
-      echo "export PATH=\"\${PATH}:${path}\""
-    fi
-    echo ""
-    echo "The helper scripts can be uninstalled by running:"
-    for script in ${scripts[*]}; do
-      echo "rm ${path}/${script}"
-    done
-    echo ""
-    echo "The helper script is automatically updated along with this repository."
-    echo "Update using: git pull"
-    echo ""
-    echo "WARNING: Deleting this repository will break docker-bbq."
-    exit 0
+  if [[ ${install_path} == NULL ]] && [[ -d ${path} ]]; then
+    echo "Detected installation path at: ${path}"
+    install_path="${path}"
   fi
 done
+
+if [[ ${install_path} == NULL ]]; then
+  echo "No pre-existing intallation path found, installing to ${paths_to_try[0]}"
+  install_path="${paths_to_try[0]}"
+  mkdir -p ${install_path}
+fi
+
+echo
+
+for script in ${scripts[*]}; do
+  if [[ -f ${install_path}/${script} ]]; then
+    echo "'${script}' is already linked to the installation path"
+  else
+    ln -sf "${script_dir}/bin/${script}" "${install_path}/${script}"
+    echo "Created link to '${script}'"
+  fi
+done
+
+echo 
+echo "Deleting or moving this repository will break docker-bbq"
+echo
+echo "NOTE: The helper scripts can be uninstalled by running:"
+for script in ${scripts[*]}; do
+  echo "      rm ${install_path}/${script}"
+done
+
+test=$(export | grep PATH= | grep "${install_path}")
+if [[ "${test}" == "" ]]; then
+  path_update="export PATH=\"\${PATH}:${install_path}\""
+  if [[ -f /home/$USER/.bashrc ]]; then
+    echo "${path_update}" >> /home/$USER/.bashrc
+  fi
+  if [[ -f /home/$USER/.zshrc ]]; then
+    echo "${path_update}" >> /home/$USER/.zshrc
+  fi
+  echo
+  echo "NOTE: Installation path has been added to your system's \$PATH vairable"
+  echo "      Start a new terminal or reload your environment variables:"
+  echo "      source ~/.$(basename ${SHELL})rc"
+fi
