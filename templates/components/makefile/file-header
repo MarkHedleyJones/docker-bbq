@@ -1,6 +1,7 @@
 IMAGE_NAME := $(shell basename $(CURDIR))
 IMAGE_TAG  := latest
 WORKDIR    := /workspace
+DOCKER_CMD := DOCKER_BUILDKIT=1 docker
 
 .PHONY: development
 development: pre-build build-development-image post-build
