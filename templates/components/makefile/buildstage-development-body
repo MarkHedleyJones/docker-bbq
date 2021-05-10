@@ -1,4 +1,4 @@
-	docker build \
+	$(DOCKER_CMD) build \
 		--target development-image \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg WORKDIR=$(WORKDIR) \
