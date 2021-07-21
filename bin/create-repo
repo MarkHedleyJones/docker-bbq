@@ -4,11 +4,7 @@ path_base="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" &
 path_templates="${path_base}/templates"
 path_repositories="${path_templates}/repositories"
 repositories=($(ls "${path_repositories}"))
-enable_git=0
-
-if [ -s ~/.gitconfig ]; then
-  enable_git=1
-fi
+enable_git=1
 
 usage() {
   cat <<EOF
@@ -20,6 +16,7 @@ OPTIONS:
 
   -h, --help      Print this help and exit
   -l, --list      Print the list of supported repositories
+  --no-git        To not setup the repository with git
 
 EXAMPLES:
 
@@ -61,6 +58,9 @@ case $i in
     show_supported
     exit
     ;;
+    --no-git)
+    enable_git=0
+    ;;
 esac
 done
 
@@ -77,6 +77,11 @@ repo_name="$2"
 if [[ -d "${repo_name}" ]]; then
   echo "Target directory '${repo_name}' already exists - aborting"
   exit 1
+fi
+
+if [ "${enable_git}" == '1' ] && [ ! -s ~/.gitconfig ]; then
+  echo ${repo_name}" will not be setup with git as ~/.gitconfig could not be found"
+  enable_git=0
 fi
 
 # Load the components (contains arrays to use eval)
