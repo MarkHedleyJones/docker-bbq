@@ -89,10 +89,20 @@ set_workspace_path() {
   if [[ $# -ne 1 ]]; then
     error "Error setting workspace paths"
   fi
+  repository_path="${1}"
   if [[ "${repository_path}" != "" ]]; then
     if [[ -f "${repository_path}/.docker-bbq" ]]; then
-      image_workspace="/${dirname_workspace}"
-      local_workspace="${1}"
+      source ${repository_path}/.docker-bbq
+      if [[ ${WORKSPACE} == *":"* ]]; then
+        IFS=':'
+        read -ra CMPTS<<<"${WORKSPACE}"
+        local_workspace="${repository_path}/${CMPTS[0]}"
+        image_workspace="${CMPTS[1]}"
+        IFS=' '
+      else
+        local_workspace="${repository_path}/${WORKSPACE}"
+        image_workspace="/${WORKSPACE}"
+      fi
       repo_in_dev_state=1
     else
       info "Repository does not contain a .docker-bbq file" \
@@ -163,7 +173,7 @@ if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-bbq repository
   tag="latest"
   set_container_name "${image}" "${tag}"
-  set_workspace_path "${repository_path}/${dirname_workspace}"
+  set_workspace_path "${repository_path}"
   container_workdir="$(pwd | sed "s|${repository_path}||")"
   if [[ ${container_workdir} = "" ]]; then
     container_workdir="/"
@@ -180,7 +190,7 @@ else
     if [[ "${image}" != "NULL" ]]; then
       tag="latest"
       set_container_name "${image}" "${tag}"
-      set_workspace_path "${repository_path}/${dirname_workspace}"
+      set_workspace_path "${repository_path}"
       if [[ -d "$1" ]]; then
         testing "target argument is a directory"
         container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
