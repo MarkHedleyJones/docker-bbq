@@ -4,6 +4,6 @@
 ################################################################################
 FROM base AS development-image
 ARG WORKDIR
-ENV WORKDIR $WORKDIR
+ARG WORKSPACE_NAME
+ENV WORKSPACE $WORKDIR/$WORKSPACE_NAME
 WORKDIR $WORKDIR
-

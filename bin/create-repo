@@ -119,7 +119,7 @@ file=""
 compile_file "dockerfile"
 echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-file="BASE_IMAGE ?= ${repository}:${tag}"
+file="BASE_IMAGE     ?= ${repository}:${tag}"
 compile_file "makefile"
 echo "${file}" | head -c -1 > "${repo_name}/Makefile"
 

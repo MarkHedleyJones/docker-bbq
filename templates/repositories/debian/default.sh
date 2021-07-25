@@ -7,6 +7,7 @@ dockerfile_components=(
   install-apt-packages
   install-pip-packages
   copy-local-resources
+  create-user-account
   target-development
   target-development-body
   target-preproduction

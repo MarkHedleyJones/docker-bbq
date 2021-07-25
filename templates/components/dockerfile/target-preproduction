@@ -4,5 +4,5 @@
 ################################################################################
 FROM base AS pre-production
 ARG WORKDIR
-COPY workspace $WORKDIR
-
+ARG WORKSPACE_NAME
+COPY $WORKSPACE_NAME $WORKDIR/$WORKSPACE_NAME
