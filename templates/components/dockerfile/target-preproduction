@@ -3,6 +3,4 @@
 # PRE-PRODUCTION STAGE - transform workspace into production-ready state
 ################################################################################
 FROM base AS pre-production
-ARG WORKDIR
-ARG WORKSPACE_NAME
-COPY $WORKSPACE_NAME $WORKDIR/$WORKSPACE_NAME
+COPY $WORKSPACE_NAME $WORKSPACE

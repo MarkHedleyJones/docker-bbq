@@ -3,11 +3,12 @@
 tag=${tag:-latest}
 
 dockerfile_components=(
-  file-header
-  install-apk-packages
-  install-pip-packages
-  copy-local-resources
-  create-user-account
+  base-header
+  base-install-apk-packages
+  base-install-pip-packages
+  base-copy-local-resources
+  base-create-user
+  base-setup-workspace-vars
   target-development
   target-development-body
   target-preproduction

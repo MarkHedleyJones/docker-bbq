@@ -3,7 +3,3 @@
 # PRODUCTION TARGET - generate final self-contained image
 ################################################################################
 FROM base AS production-image
-ARG WORKDIR
-ARG WORKSPACE_NAME
-ENV WORKSPACE $WORKDIR/$WORKSPACE_NAME
-WORKDIR $WORKDIR

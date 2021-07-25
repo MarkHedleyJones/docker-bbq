@@ -1,3 +1,3 @@
 # Add alais to build workspace by typing 'cm'
-RUN echo "alias cm='cd ${WORKDIR}/catkin_ws && catkin_make && \
+RUN echo "alias cm='cd ${WORKSPACE}/catkin_ws && catkin_make && \
 rospack profile && source devel/setup.bash ; cd - > /dev/null'" >> /root/.bashrc
