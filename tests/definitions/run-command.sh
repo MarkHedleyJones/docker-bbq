@@ -29,7 +29,7 @@ pass "run --repo ${repo_path} workspace/target.sh | grep boom"
 # Build production image with target script
 cd ${repo_path}
 make production > /dev/null 2>&1
-#rm workspace/target.sh
+rm workspace/target.sh
 subheading "Production builds"
 
 name="Run command in container"
