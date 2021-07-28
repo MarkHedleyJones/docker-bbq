@@ -153,18 +153,19 @@ if [[ ${regenerate_repository} == 0 ]]; then
     echo "${component}" >> "${repo_name}"/.dockerignore
   done
 
-  # Generate .gitignore
-  cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
-  for component in ${gitignore_entries[*]}; do
-    echo "${component}" >> "${repo_name}"/.gitignore
-  done
-
   # Create any directories and files as listed in the template
   for directory in ${create_directories[*]}; do
     mkdir -p "${repo_name}/${directory}"
   done
 
   if [ "${enable_git}" == '1' ]; then
+    # Generate .gitignore
+    cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
+    for component in ${gitignore_entries[*]}; do
+      echo "${component}" >> "${repo_name}"/.gitignore
+    done
+
+    # Automatically commit template files
     printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
   fi
   echo "Created ${repository} based docker-bbq repo '${repo_name}'"
