@@ -83,6 +83,7 @@ check_supported "${repository}"
 if [[ ${regenerate_repository} == 0 ]]; then
   if [[ $# -eq 1 ]]; then
     echo "Please specify a name for the repository!"
+    exit 1
   fi
 
   repo_name="$2"
