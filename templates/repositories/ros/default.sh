@@ -2,6 +2,8 @@
 
 tag=${tag:-noetic-ros-base}
 
+workspace_name="catkin_ws"
+
 dockerfile_components=(
   base-header
   base-install-apt-packages

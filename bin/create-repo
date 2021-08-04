@@ -131,7 +131,12 @@ if [[ ${regenerate_repository} == 0 ]]; then
     printf "$(cd "${repo_name}" && git init > /dev/null)"
   fi
   mkdir "${repo_name}"/build
-  mkdir "${repo_name}"/workspace
+
+  if [ -z ${workspace_name+x} ]; then
+    mkdir "${repo_name}"/workspace
+  else
+    mkdir "${repo_name}/${workspace_name}"
+  fi
   mkdir "${repo_name}"/build/resources
   touch "${repo_name}"/build/packagelist
 
