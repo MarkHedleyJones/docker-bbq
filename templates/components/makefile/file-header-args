@@ -1,0 +1,5 @@
+DOCKER_CMD     := DOCKER_BUILDKIT=1 docker
+GROUP_ID       := 1000
+USER_ID        := 1000
+USER_NAME      := root
+WORKSPACE_NAME := workspace
