@@ -5,4 +5,4 @@ cd test
 make > /dev/null 2>&1
 
 name="Catkin build"
-pass 'cd workspace/catkin_ws && run catkin_make'
+pass 'cd catkin_ws && run catkin_make'
