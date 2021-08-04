@@ -3,10 +3,12 @@
 tag=${tag:-noetic-ros-base}
 
 dockerfile_components=(
-  file-header
-  install-apt-packages
-  install-pip-packages
-  copy-local-resources
+  base-header
+  base-install-apt-packages
+  base-install-pip-packages
+  base-copy-local-resources
+  base-create-user
+  base-setup-workspace-vars
   ros/target-base-footer
   target-development
   ros/target-development-body

@@ -5,18 +5,24 @@ path_templates="${path_base}/templates"
 path_repositories="${path_templates}/repositories"
 repositories=($(ls "${path_repositories}"))
 enable_git=1
+regenerate_repository=0
 
 usage() {
   cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") type name
+Usage: $(basename "${BASH_SOURCE[0]}") <template-name> <project-name>
+       $(basename "${BASH_SOURCE[0]}") --regenerate <template-name>
 
-  Create a templated docker repository based on the given type
+  Create a templated docker repository based on the given <template-name>
 
 OPTIONS:
 
   -h, --help      Print this help and exit
-  -l, --list      Print the list of supported repositories
+  -l, --list      Print the list of repository templates
   --no-git        To not setup the repository with git
+  --regenerate    Overwrite this repository's Dockerfile & Makefile with the
+                  given <template-name>'s versions. Can be used for changing
+                  an existing repository's base-template, or updating an old
+                  docker-bbq repository to the latest version.
 
 EXAMPLES:
 
@@ -61,40 +67,43 @@ case $i in
     --no-git)
     enable_git=0
     ;;
-esac
+    --regenerate|-r)
+    regenerate_repository=1
+    ;;
+    *) break;
+  esac
+  shift
 done
 
 repository="$1"
 
 check_supported "${repository}"
 
-if [[ $# -eq 1 ]]; then
-  echo "Please specify a name for the repository!"
+
+if [[ ${regenerate_repository} == 0 ]]; then
+  if [[ $# -eq 1 ]]; then
+    echo "Please specify a name for the repository!"
+    exit 1
+  fi
+
+  repo_name="$2"
+
+  if [[ -d "${repo_name}" ]]; then
+    echo "Target directory '${repo_name}' already exists - aborting"
+    exit 1
+  fi
+
+  if [ "${enable_git}" == '1' ] && [ ! -s ~/.gitconfig ]; then
+    echo ${repo_name}" will not be setup with git as ~/.gitconfig could not be found"
+    enable_git=0
+  fi
+else
+  repo_name=""
 fi
 
-repo_name="$2"
-
-if [[ -d "${repo_name}" ]]; then
-  echo "Target directory '${repo_name}' already exists - aborting"
-  exit 1
-fi
-
-if [ "${enable_git}" == '1' ] && [ ! -s ~/.gitconfig ]; then
-  echo ${repo_name}" will not be setup with git as ~/.gitconfig could not be found"
-  enable_git=0
-fi
 
 # Load the components (contains arrays to use eval)
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
-
-mkdir "${repo_name}"
-if [ "${enable_git}" == '1' ]; then
-  printf "$(cd "${repo_name}" && git init > /dev/null)"
-fi
-mkdir "${repo_name}"/build
-mkdir "${repo_name}"/workspace
-mkdir "${repo_name}"/build/resources
-touch "${repo_name}"/build/packagelist
 
 compile_file() {
   filetype=$1
@@ -115,36 +124,62 @@ compile_file() {
   done
 }
 
-file=""
-compile_file "dockerfile"
-echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-file="BASE_IMAGE ?= ${repository}:${tag}"
-compile_file "makefile"
-echo "${file}" | head -c -1 > "${repo_name}/Makefile"
+if [[ ${regenerate_repository} == 0 ]]; then
+  mkdir "${repo_name}"
+  if [ "${enable_git}" == '1' ]; then
+    printf "$(cd "${repo_name}" && git init > /dev/null)"
+  fi
+  mkdir "${repo_name}"/build
+  mkdir "${repo_name}"/workspace
+  mkdir "${repo_name}"/build/resources
+  touch "${repo_name}"/build/packagelist
 
-file="# ${repo_name}"
-compile_file "readme"
-echo "${file}" | head -c -1 > "${repo_name}/README.md"
+  file=""
+  compile_file "dockerfile"
+  echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-# Generate .dockerignore
-cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
-for component in ${dockerignore_entries[*]}; do
-  echo "${component}" >> "${repo_name}"/.dockerignore
-done
+  file="BASE_IMAGE     ?= ${repository}:${tag}"
+  compile_file "makefile"
+  echo "${file}" | head -c -1 > "${repo_name}/Makefile"
 
-# Generate .gitignore
-cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
-for component in ${gitignore_entries[*]}; do
-  echo "${component}" >> "${repo_name}"/.gitignore
-done
+  file="# ${repo_name}"
+  compile_file "readme"
+  echo "${file}" | head -c -1 > "${repo_name}/README.md"
 
-# Create any directories and files as listed in the template
-for directory in ${create_directories[*]}; do
-  mkdir -p "${repo_name}/${directory}"
-done
+  # Generate .dockerignore
+  cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
+  for component in ${dockerignore_entries[*]}; do
+    echo "${component}" >> "${repo_name}"/.dockerignore
+  done
 
-if [ "${enable_git}" == '1' ]; then
-  printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
+  # Create any directories and files as listed in the template
+  for directory in ${create_directories[*]}; do
+    mkdir -p "${repo_name}/${directory}"
+  done
+
+  if [ "${enable_git}" == '1' ]; then
+    # Generate .gitignore
+    cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
+    for component in ${gitignore_entries[*]}; do
+      echo "${component}" >> "${repo_name}"/.gitignore
+    done
+
+    # Automatically commit template files
+    printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
+  fi
+  echo "Created ${repository} based docker-bbq repo '${repo_name}'"
+else
+  if [ -f Makefile ]; then
+    file=""
+    compile_file "dockerfile"
+    echo "${file}" | head -c -1 > "Dockerfile"
+
+    file="BASE_IMAGE     ?= ${repository}:${tag}"
+    compile_file "makefile"
+    echo "${file}" | head -c -1 > "Makefile"
+    echo "Regenerated docker-bbq repository '$(basename $(pwd))' using template: ${repository}"
+  else
+    echo "Could not find an existing Makefile to regenerate - aborting!"
+  fi
 fi
-echo "Created ${repository} based docker-bbq repo '${repo_name}'"

@@ -3,7 +3,3 @@
 # DEVELOPMENT TARGET - generate development-friendly image
 ################################################################################
 FROM base AS development-image
-ARG WORKDIR
-ENV WORKDIR $WORKDIR
-WORKDIR $WORKDIR
-

@@ -2,11 +2,10 @@
 
 TESTING="${TESTING:=False}"
 
-# The path to check for contanier specific workspaces
-dirname_workspace="workspace"
 verbosity=0
 interactive=1
-repo_in_dev_state=0
+run_with_privileges=0
+input_repo_path=""
 
 # Allow disabling interactive/tty mode via environment variable (for CI)
 if [ ${DOCKER_BBQ_NON_INTERACTIVE} ]; then
@@ -89,11 +88,21 @@ set_workspace_path() {
   if [[ $# -ne 1 ]]; then
     error "Error setting workspace paths"
   fi
+  repository_path="${1}"
   if [[ "${repository_path}" != "" ]]; then
     if [[ -f "${repository_path}/.docker-bbq" ]]; then
-      image_workspace="/${dirname_workspace}"
-      local_workspace="${1}"
-      repo_in_dev_state=1
+      source ${repository_path}/.docker-bbq
+      image_workspace="${WORKSPACE_PATH}/${WORKSPACE_NAME}"
+      if [[ "${MOUNT_WORKSPACE}" != "False" ]]; then
+        local_workspace="${repository_path}/${WORKSPACE_NAME}"
+      fi
+      if [[ "${PRIVILEGED}" == "True" ]]; then
+        run_with_privileges=1
+      fi
+      unset PRIVILEGED
+      unset WORKSPACE_NAME
+      unset WORKSPACE_PATH
+      unset MOUNT_WORKSPACE
     else
       info "Repository does not contain a .docker-bbq file" \
            "- no workspace will be mounted"
@@ -111,25 +120,24 @@ error() {
 
 usage() {
   cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [image-source] [command]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
   Enter a docker container and optionally execute a command. If no command is
   given, drop into an interactive shell.
 
   The image-source will be determined the following checks:
-  1. Check to see if the user is currently in a docker-bbq repository.
-  2. Check to see if the first argument is a path to docker-bbq repository.
-  3. Check to see if the first argument is a path inside a docker-bbq repository.
-  4. Check to see if the first argument is the name of an available local image.
-  5. Assume the first argument is the name of an image on docker-hub
+  1. If <path_to_repo> is provided, search that path for docker-bbq repository.
+  2. Check to see if the user is currently in a docker-bbq repository.
 
-  Once the image-source is decided, check if the image is already running.
-  If so, reuse the existing image. If not, start a new image using docker run.
+  Once the image-source is decided, check if a container is already running.
+  - If so, execute the command (or drop into a shell) inside that image.
+  - If not, start a new image using docker run.
 
 OPTIONS:
 
   -h, --help      Print this help and exit
   -l, --list      Print the list of docker images and exit
+  -r, --repo      Provide a path to a docker-bbq repository
 
 EXAMPLES:
 
@@ -147,78 +155,51 @@ while :; do
   -l | --list) list_docker_images ;;
   -v | --verbose) verbosity=1 ;;
   -n | --non-interactive) interactive=0 ;;
+  -r | --repo) input_repo_path="${2}" ; shift ;;
   -?*) error "Unknown option: $1" ;;
   *) break ;;
   esac
   shift
 done
 
-find_repo_name "$(pwd)"
+
+if [[ "${input_repo_path}" == "" ]]; then
+  testing "Searching for reposiory based on current working path"
+  find_repo_name "$(pwd)"
+else
+  testing "Using a user-provided path to reposiory"
+  find_repo_name "${input_repo_path}"
+fi
+
 testing "image-from-working-dir" "${image}"
 
-container_workdir="/${dirname_workspace}"
+container_workdir=""
 user_command=""
 
 if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-bbq repository
   tag="latest"
   set_container_name "${image}" "${tag}"
-  set_workspace_path "${repository_path}/${dirname_workspace}"
-  container_workdir="$(pwd | sed "s|${repository_path}||")"
-  if [[ ${container_workdir} = "" ]]; then
-    container_workdir="/"
-  fi
-else
-  if [[ $# -eq 0 ]]; then
-    error "Could not find a docker-bbq repository in this working tree"
-  elif [[ "$1" =~ '/' ]]; then
-    # Assume that if there's a slash that this is a path to a target file.
-    # Don't check for it's existance on the host because it may only exist
-    # in the image (true of production images or files created during build).
-    find_repo_name "$1"
-    testing "The image was determined as ${image}"
-    if [[ "${image}" != "NULL" ]]; then
-      tag="latest"
-      set_container_name "${image}" "${tag}"
-      set_workspace_path "${repository_path}/${dirname_workspace}"
-      if [[ -d "$1" ]]; then
-        testing "target argument is a directory"
-        container_workdir="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}||")"
-      else
-        # Assume user has specified a specifc file,  so execute that
-        testing "target argument is a file"
-        user_command="$(echo "$(absolute_path "$1")" | sed "s|${repository_path}/${dirname_workspace}/|./|")"
-      fi
-      # Remove the processed argument ($1) as it has been processed
-      shift
+  set_workspace_path "${repository_path}"
+
+  # Make sure the working directory in the image is translated to our relative
+  # position to the workspace outside the image.
+  cwd=$(pwd)
+  testing "Current working directory = ${cwd}"
+  if [ "${cwd}" == "${repository_path}" ]; then
+    testing " - In reposiory main folder..."
+    if [ "${image_workspace}" != "" ]; then
+      container_workdir=$(dirname "${image_workspace}")
     else
-      error "Could not find a docker-bbq repository at (or above) $1"
+      container_workdir=""
     fi
+  elif [[ "${local_workspace}" != "" ]] && [[ "${cwd}" == "${local_workspace}"* ]]; then
+    testing " - Under repository's workspace"
+    path_difference="${cwd#${local_workspace}}"
+    container_workdir=${image_workspace}${path_difference}
   else
-    testing "First argument is not a path..."
-    get_docker_images
-    parse_image_and_tag_input "${1}"
-    shift
-    if [[ " ${docker_images_full[*]} " =~ " ${input_image}:${input_tag} " ]]; then
-      testing "target argument was found in docker image list"
-      image=${input_image}
-      tag=${input_tag}
-      set_container_name "${image}" "${tag}"
-      container_workdir="/"
-    else
-      if [[ "${input_image}" =~ "/" ]]; then
-        IFS='/' read -r -a parts <<< "${input_image}/"
-        if [[ " ${docker_images_full[*]} " =~ " ${parts[0]}:latest " ]]; then
-          image=${parts[0]}
-          tag="latest"
-          set_container_name "${image}" "${tag}"
-        else
-          error "Could not find the docker image ${input_image}:${input_tag}"
-        fi
-      else
-        error "Could not find the docker image ${input_image}:${input_tag}"
-      fi
-    fi
+    testing " - Must be outside of repository"
+    container_workdir=$(dirname "${image_workspace}")
   fi
 fi
 
@@ -237,14 +218,9 @@ testing "local_workspace" "${local_workspace}"
 testing "image_workspace" "${image_workspace}"
 testing "container_workdir" "${container_workdir}"
 testing "user_command" "${user_command}"
-testing "repo_in_dev_state" ${repo_in_dev_state}
+testing "run_with_privileges" ${run_with_privileges}
 
 docker_args_workdir+="--workdir=${container_workdir} "
-if [[ "${image_workspace}" != "" ]]; then
-  # WORKDIR should be set inside the container, but just-in-case, set it again.
-  # Allows scripts inside the container to easily locate the workspace
-  docker_args_workdir+="--env WORKDIR=/${dirname_workspace} "
-fi
 
 # Setup a local bash_history file to link into the container
 bash_history_path="/tmp/.bash_history_${container_name}"
@@ -264,7 +240,7 @@ shell=$(docker run --entrypoint "" --rm ${image}:${tag} sh -c 'command -v bash |
 
 docker_command="${shell}"
 if [[ "${user_command}" != "" ]]; then
-  docker_command="${shell} -cl \"${user_command}\""
+  docker_command="${shell} -c \"${user_command}\""
 fi
 
 docker_args_interactive=""
@@ -307,7 +283,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
 
   docker_args_privileged=""
-  if [[ ${repo_in_dev_state} -eq 1 ]]; then
+  if [[ ${run_with_privileges} -eq 1 ]]; then
     docker_args_privileged="--privileged "
   fi
 
