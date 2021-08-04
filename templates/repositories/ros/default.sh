@@ -21,7 +21,7 @@ dockerfile_components=(
 )
 
 makefile_components=(
-  file-header-args
+  ros/file-header-args
   file-header-setup
   buildstage-development
   buildstage-development-body
@@ -41,18 +41,19 @@ readme_components=(
 )
 
 create_directories=(
-  workspace/catkin_ws
-  workspace/catkin_ws/src
+  ${workspace_name}/src
 )
 
 dockerignore_entries=(
-  workspace/catkin_ws/build
-  workspace/catkin_ws/devel
-  workspace/catkin_ws/install
+  ${workspace_name}/build
+  ${workspace_name}/devel
+  ${workspace_name}/install
 )
 
 gitignore_entries=(
-  workspace/catkin_ws/build
-  workspace/catkin_ws/devel
-  workspace/catkin_ws/install
+  ${workspace_name}/build
+  ${workspace_name}/devel
+  ${workspace_name}/install
+  ${workspace_name}/.catkin_workspace
+  ${workspace_name}/src/CMakeLists.txt
 )
