@@ -1,6 +1,6 @@
 	# Adding ROS workspace dependencies to packagelist
 	docker run \
-		-v $(CURDIR)/$(WORKSPACE_NAME):$(HOME)/$(WORKSPACE_NAME) \
+		-v $(CURDIR)/$(WORKSPACE_NAME):$(WORKDIR)/$(WORKSPACE_NAME) \
 		$(BASE_IMAGE) \
-		/bin/bash -c "rosdep install --simulate --from-paths $(HOME)/$(WORKSPACE_NAME)/src --ignore-src -y" \
+		/bin/bash -c "rosdep install --simulate --from-paths $(WORKDIR)/$(WORKSPACE_NAME)/src --ignore-src -y" \
 		| awk '{if(NR>1)print}' | cut -d ' ' -f 6 | sort --unique >> build/tmp/packagelist

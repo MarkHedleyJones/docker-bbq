@@ -4,7 +4,7 @@
 		--build-arg GROUP_ID=$(GROUP_ID) \
 		--build-arg USER_ID=$(USER_ID) \
 		--build-arg USER_NAME=$(USER_NAME) \
-		--build-arg HOME=$(IMAGE_HOMEDIR) \
+		--build-arg WORKDIR=$(IMAGE_HOMEDIR) \
 		--build-arg WORKSPACE_NAME=$(WORKSPACE_NAME) \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
