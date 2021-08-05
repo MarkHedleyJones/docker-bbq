@@ -18,7 +18,6 @@ dockerfile_components=(
 )
 
 makefile_components=(
-  file-header-args
   file-header-setup
   buildstage-development
   buildstage-development-body

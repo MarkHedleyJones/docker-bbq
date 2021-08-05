@@ -2,7 +2,7 @@
 
 tag=${tag:-noetic-ros-base}
 
-workspace_name="catkin_ws"
+workspace_name=catkin_ws
 
 dockerfile_components=(
   base-header
@@ -21,7 +21,6 @@ dockerfile_components=(
 )
 
 makefile_components=(
-  ros/file-header-args
   file-header-setup
   buildstage-development
   buildstage-development-body

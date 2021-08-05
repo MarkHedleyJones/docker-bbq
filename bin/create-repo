@@ -7,6 +7,14 @@ repositories=($(ls "${path_repositories}"))
 enable_git=1
 regenerate_repository=0
 
+# Default Makefile settings (to be overridden by templates)
+docker_cmd="DOCKER_BUILDKIT=1 docker"
+image_tag=latest
+group_id=1000
+user_id=1000
+user_name=root
+workspace_name=workspace
+
 usage() {
   cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") <template-name> <project-name>
@@ -124,7 +132,6 @@ compile_file() {
   done
 }
 
-
 if [[ ${regenerate_repository} == 0 ]]; then
   mkdir "${repo_name}"
   if [ "${enable_git}" == '1' ]; then
@@ -133,7 +140,7 @@ if [[ ${regenerate_repository} == 0 ]]; then
   mkdir "${repo_name}"/build
 
   if [ -z ${workspace_name+x} ]; then
-    mkdir "${repo_name}"/workspace
+    mkdir "${repo_name}/workspace"
   else
     mkdir "${repo_name}/${workspace_name}"
   fi
@@ -144,7 +151,13 @@ if [[ ${regenerate_repository} == 0 ]]; then
   compile_file "dockerfile"
   echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-  file="BASE_IMAGE     ?= ${repository}:${tag}"
+  file="BASE_IMAGE     ?= ${repository}:${tag}
+DOCKER_CMD     := ${docker_cmd}
+IMAGE_TAG      := ${image_tag}
+GROUP_ID       := ${group_id}
+USER_ID        := ${user_id}
+USER_NAME      := ${user_name}
+WORKSPACE_NAME := ${workspace_name}"
   compile_file "makefile"
   echo "${file}" | head -c -1 > "${repo_name}/Makefile"
 
