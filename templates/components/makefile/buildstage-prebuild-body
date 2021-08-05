@@ -8,6 +8,6 @@
 		&& if [ ! -z "$$reqs" ] ; then cd build && cp pip*-requirements.txt tmp/pip && for py in $$reqs ; do \
 		printf "$${py}-pip\n$${py}-wheel\n$${py}-setuptools\n" >> tmp/packagelist ; done ; fi
 	# Fetching any remote resources ...
-	@mkdir -p build/resources && if [ -f build/urilist ] ; then if command -v wget &> /dev/null ; then \
+	@mkdir -p build/resources && if [ -f build/urilist ] ; then if ! which wget > /dev/null; then \
 		echo "ERROR: Missing dependency: wget" && exit 1 ; else cat build/urilist | while read uri ; do echo "Downloading \
 		$$uri ..." \ && wget --quiet --no-clobber --directory-prefix build/resources/ $$uri ; done ; fi ; fi
