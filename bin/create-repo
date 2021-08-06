@@ -9,7 +9,6 @@ regenerate_repository=0
 
 # Default Makefile settings (to be overridden by templates)
 docker_cmd="DOCKER_BUILDKIT=1 docker"
-image_tag=latest
 group_id=1000
 user_id=1000
 user_name=root
@@ -153,7 +152,6 @@ if [[ ${regenerate_repository} == 0 ]]; then
 
   file="BASE_IMAGE     ?= ${repository}:${tag}
 DOCKER_CMD     := ${docker_cmd}
-IMAGE_TAG      := ${image_tag}
 GROUP_ID       := ${group_id}
 USER_ID        := ${user_id}
 USER_NAME      := ${user_name}
