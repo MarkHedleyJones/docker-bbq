@@ -1,5 +1,5 @@
 RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && cd ${WORKSPACE} \
-    && catkin_make install -j $(nproc) --cmake-args -DCMAKE_BUILD_TYPE=Release \
-    && rm -rf build devel src"
-    # Only the install folder will be placed into the production image
+  && cd ${WORKSPACE} \
+  && catkin_make install -j $(nproc) --cmake-args -DCMAKE_BUILD_TYPE=Release \
+  && rm -rf build devel src"
+  # Only the install folder will be placed into the production image
