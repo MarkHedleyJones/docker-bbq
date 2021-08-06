@@ -18,6 +18,7 @@ dockerfile_components=(
   ros/target-preproduction-body
   target-production
   target-production-body
+  ros/target-production-footer
 )
 
 makefile_components=(

@@ -1,3 +1,7 @@
 # Add alais to build workspace by typing 'cm'
 RUN echo "alias cm='cd ${WORKSPACE} && catkin_make && \
-rospack profile && source devel/setup.bash ; cd - > /dev/null'" >> /root/.bashrc
+rospack profile && source devel/setup.bash ; cd - > /dev/null'" >> $HOME/.bashrc
+# Source Catkin development workspace
+RUN echo "if [[ -f ${WORKSPACE}/devel/setup.bash ]]; then\n\
+  source  ${WORKSPACE}/devel/setup.bash\n\
+fi" >> $HOME/.bashrc ;
