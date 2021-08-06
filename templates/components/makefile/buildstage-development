@@ -2,3 +2,5 @@
 # A development build does not include the workspace
 .PHONY: build-development-image
 build-development-image:
+	$(DOCKER_CMD) build \
+		--target development-image \

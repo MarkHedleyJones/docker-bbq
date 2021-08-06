@@ -1,3 +1,9 @@
+# Configure the apt mirror
+ARG APT_MIRROR=""
+RUN if [ "${APT_MIRROR}" != "" ]; then if [ "${APT_MIRROR}" = "auto" ]; then \ 
+  APT_MIRROR="mirror://mirrors.ubuntu.com/mirrors.txt"; fi && sed --in-place \
+  "s|http://archive.ubuntu.com/ubuntu/|${APT_MIRROR}|g" /etc/apt/sources.list; \
+  fi
 
 # Install APT packages (if any) from packagelist
 COPY build/tmp/packagelist /build/packagelist

@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-tag=${tag:-noetic-ros-base}
-
 workspace_name=catkin_ws
+
+dockerfile_args=(
+  APT_MIRROR,auto
+  BASE_IMAGE,ros:noetic-ros-base
+  GROUP_ID,1000
+  USER_ID,1000
+  USER_NAME,root
+  WORKSPACE_NAME,${workspace_name}
+)
 
 dockerfile_components=(
   base-header

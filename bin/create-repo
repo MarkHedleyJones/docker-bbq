@@ -9,10 +9,6 @@ regenerate_repository=0
 
 # Default Makefile settings (to be overridden by templates)
 docker_cmd="DOCKER_BUILDKIT=1 docker"
-group_id=1000
-user_id=1000
-user_name=root
-workspace_name=workspace
 
 usage() {
   cat <<EOF
@@ -112,6 +108,22 @@ fi
 # Load the components (contains arrays to use eval)
 eval "$(cat "${path_repositories}/${repository}/default.sh")"
 
+if [ -z ${dockerfile_args+x} ]; then
+  echo "Error: Template '${repository}' is missing dockerfile_args - aborting"
+  exit 1
+fi
+
+compile_build_args() {
+  vars=(${dockerfile_args[*]})
+  vars+=( "WORKDIR,_" )
+  sorted=($(sort <<<${vars[*]}))
+  for i in ${sorted[*]}; do
+    IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n";
+    unset IFS
+  done
+  file+='\t\t--tag $(IMAGE_NAME):$(IMAGE_TAG) \x5C\n\t\t.\n'
+}
+
 compile_file() {
   filetype=$1
   if [[ "${file}" != "" ]]; then
@@ -128,7 +140,23 @@ compile_file() {
       file+="$(cat "${component_path}" | sed '${/^$/d;}')"
       file+=$'\n'
     fi
+    if [[ ${component} == "buildstage-development" ]] \
+      || [[ ${component} == "buildstage-production" ]]; then
+      compile_build_args
+    fi
   done
+}
+
+compile_header() {
+  vars=($@)
+  sorted=($(sort <<<${vars[*]}))
+  file=""
+  for i in ${sorted[*]}; do
+    IFS=","; set -- $i; file+=$(printf '%-15s := %s\\n' "$1" "$2");
+    unset IFS
+  done
+  # Strip the last newline
+  file=${file%\\n}
 }
 
 if [[ ${regenerate_repository} == 0 ]]; then
@@ -150,14 +178,9 @@ if [[ ${regenerate_repository} == 0 ]]; then
   compile_file "dockerfile"
   echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-  file="BASE_IMAGE     := ${repository}:${tag}
-DOCKER_CMD     := ${docker_cmd}
-GROUP_ID       := ${group_id}
-USER_ID        := ${user_id}
-USER_NAME      := ${user_name}
-WORKSPACE_NAME := ${workspace_name}"
+  compile_header ${dockerfile_args[*]}
   compile_file "makefile"
-  echo "${file}" | head -c -1 > "${repo_name}/Makefile"
+  printf "${file}" | head -c -1 > "${repo_name}/Makefile"
 
   file="# ${repo_name}"
   compile_file "readme"
@@ -191,14 +214,9 @@ else
     compile_file "dockerfile"
     echo "${file}" | head -c -1 > "Dockerfile"
 
-  file="BASE_IMAGE     := ${repository}:${tag}
-DOCKER_CMD     := ${docker_cmd}
-GROUP_ID       := ${group_id}
-USER_ID        := ${user_id}
-USER_NAME      := ${user_name}
-WORKSPACE_NAME := ${workspace_name}"
+    compile_header ${dockerfile_args[*]}
     compile_file "makefile"
-    echo "${file}" | head -c -1 > "Makefile"
+    printf ${file} | head -c -1 > "${repo_name}/Makefile"
     echo "Regenerated docker-bbq repository '$(basename $(pwd))' using template: ${repository}"
   else
     echo "Could not find an existing Makefile to regenerate - aborting!"

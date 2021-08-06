@@ -2,6 +2,15 @@
 
 tag=${tag:-latest}
 
+dockerfile_args=(
+  APT_MIRROR,auto
+  BASE_IMAGE,ubuntu:latest
+  GROUP_ID,1000
+  USER_ID,1000
+  USER_NAME,root
+  WORKSPACE_NAME,workspace
+)
+
 dockerfile_components=(
   base-header
   base-install-apt-packages
