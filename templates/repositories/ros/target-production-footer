@@ -1,4 +1,4 @@
 # Source Catkin install workspace
 RUN echo "if [[ -f ${WORKSPACE}/install/setup.bash ]]; then\n\
   source  ${WORKSPACE}/install/setup.bash\n\
-fi" >> $HOME/.bashrc ;
+fi" >> ${HOME}/.bashrc ;
