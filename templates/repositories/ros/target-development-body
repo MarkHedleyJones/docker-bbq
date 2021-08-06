@@ -1,7 +1,8 @@
 # Add alais to build workspace by typing 'cm'
 RUN echo "alias cm='cd ${WORKSPACE} && catkin_make && rospack profile \
   && source devel/setup.bash ; cd - > /dev/null'" >> ${HOME}/.bashrc
-# Source Catkin development workspace
+# Source Catkin development workspace (when using docker run or docker exec)
 RUN echo "if [[ -f ${WORKSPACE}/devel/setup.bash ]]; then\n\
   source  ${WORKSPACE}/devel/setup.bash\n\
-fi" >> ${HOME}/.bashrc ;
+fi" | tee --append ${HOME}/.bashrc /ros_entrypoint.sh && sed -i '/exec "$@"/d' \
+  /ros_entrypoint.sh && echo 'exec "$@"' >> /ros_entrypoint.sh;
