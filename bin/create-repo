@@ -150,7 +150,7 @@ if [[ ${regenerate_repository} == 0 ]]; then
   compile_file "dockerfile"
   echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
 
-  file="BASE_IMAGE     ?= ${repository}:${tag}
+  file="BASE_IMAGE     := ${repository}:${tag}
 DOCKER_CMD     := ${docker_cmd}
 GROUP_ID       := ${group_id}
 USER_ID        := ${user_id}
@@ -191,7 +191,7 @@ else
     compile_file "dockerfile"
     echo "${file}" | head -c -1 > "Dockerfile"
 
-  file="BASE_IMAGE     ?= ${repository}:${tag}
+  file="BASE_IMAGE     := ${repository}:${tag}
 DOCKER_CMD     := ${docker_cmd}
 GROUP_ID       := ${group_id}
 USER_ID        := ${user_id}
