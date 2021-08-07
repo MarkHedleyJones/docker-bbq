@@ -216,7 +216,7 @@ else
 
     compile_header ${dockerfile_args[*]}
     compile_file "makefile"
-    printf ${file} | head -c -1 > "${repo_name}/Makefile"
+    printf "${file}" | head -c -1 > "Makefile"
     echo "Regenerated docker-bbq repository '$(basename $(pwd))' using template: ${repository}"
   else
     echo "Could not find an existing Makefile to regenerate - aborting!"
