@@ -1,3 +1,5 @@
+
+# Create user account (if necessary)
 ARG GROUP_ID
 ARG USER_ID
 ARG USER_NAME
