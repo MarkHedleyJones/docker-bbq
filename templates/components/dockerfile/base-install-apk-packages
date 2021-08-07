@@ -2,5 +2,5 @@
 # Install APK packages (if any) from packagelist
 COPY build/tmp/packagelist /build/packagelist
 RUN if [ -s /build/packagelist ] ; then \
-    apk add $(cat /build/packagelist | sed -r 's/python([2,3]{0,1})-/py\1-/' | xargs) ; \
+  apk add $(cat /build/packagelist | sed -r 's/python([2,3]{0,1})-/py\1-/' | xargs) ; \
 fi

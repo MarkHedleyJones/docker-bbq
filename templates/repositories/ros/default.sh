@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-tag=${tag:-noetic-ros-base}
+workspace_name=catkin_ws
+
+dockerfile_args=(
+  APT_MIRROR,auto
+  BASE_IMAGE,ros:noetic-ros-base
+  GROUP_ID,1000
+  USER_ID,1000
+  USER_NAME,root
+  WORKSPACE_NAME,${workspace_name}
+)
 
 dockerfile_components=(
   base-header
@@ -16,6 +25,7 @@ dockerfile_components=(
   ros/target-preproduction-body
   target-production
   target-production-body
+  ros/target-production-footer
 )
 
 makefile_components=(
@@ -38,18 +48,19 @@ readme_components=(
 )
 
 create_directories=(
-  workspace/catkin_ws
-  workspace/catkin_ws/src
+  ${workspace_name}/src
 )
 
 dockerignore_entries=(
-  workspace/catkin_ws/build
-  workspace/catkin_ws/devel
-  workspace/catkin_ws/install
+  ${workspace_name}/build
+  ${workspace_name}/devel
+  ${workspace_name}/install
 )
 
 gitignore_entries=(
-  workspace/catkin_ws/build
-  workspace/catkin_ws/devel
-  workspace/catkin_ws/install
+  ${workspace_name}/build
+  ${workspace_name}/devel
+  ${workspace_name}/install
+  ${workspace_name}/.catkin_workspace
+  ${workspace_name}/src/CMakeLists.txt
 )
