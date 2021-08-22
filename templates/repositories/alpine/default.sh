@@ -2,8 +2,6 @@
 
 dockerfile_args=(
   BASE_IMAGE,alpine:latest
-  GROUP_ID,1000
-  USER_ID,1000
   USER_NAME,root
   WORKSPACE_NAME,workspace
 )

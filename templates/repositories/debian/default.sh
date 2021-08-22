@@ -3,8 +3,6 @@
 dockerfile_args=(
   APT_MIRROR,auto
   BASE_IMAGE,debian:buster-slim
-  GROUP_ID,1000
-  USER_ID,1000
   USER_NAME,root
   WORKSPACE_NAME,workspace
 )

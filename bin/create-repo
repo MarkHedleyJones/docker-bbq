@@ -4,6 +4,7 @@ path_base="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" &
 path_templates="${path_base}/templates"
 path_repositories="${path_templates}/repositories"
 repositories=($(ls "${path_repositories}"))
+default_workspace_name="workspace"
 enable_git=1
 regenerate_repository=0
 
@@ -13,7 +14,7 @@ docker_cmd="DOCKER_BUILDKIT=1 docker"
 usage() {
   cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") <template-name> <project-name>
-       $(basename "${BASH_SOURCE[0]}") --regenerate <template-name>
+       $(basename "${BASH_SOURCE[0]}") --in-place <template-name>
 
   Create a templated docker repository based on the given <template-name>
 
@@ -22,10 +23,10 @@ OPTIONS:
   -h, --help      Print this help and exit
   -l, --list      Print the list of repository templates
   --no-git        To not setup the repository with git
-  --regenerate    Overwrite this repository's Dockerfile & Makefile with the
-                  given <template-name>'s versions. Can be used for changing
-                  an existing repository's base-template, or updating an old
-                  docker-bbq repository to the latest version.
+  --in-place      Create docker repository in the current directory.
+                  Can be used for changing an existing repository's
+                  base-template, or updating an old docker-bbq repository to
+                  the latest version.
 
 EXAMPLES:
 
@@ -70,7 +71,7 @@ case $i in
     --no-git)
     enable_git=0
     ;;
-    --regenerate|-r)
+    --in-place|-i)
     regenerate_repository=1
     ;;
     *) break;
@@ -114,9 +115,9 @@ if [ -z ${dockerfile_args+x} ]; then
 fi
 
 compile_build_args() {
-  vars=(${dockerfile_args[*]})
+  vars=(${dockerfile_args[@]})
   vars+=( "WORKDIR,_" )
-  sorted=($(sort <<<${vars[*]}))
+  sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
     IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n";
     unset IFS
@@ -142,17 +143,24 @@ compile_file() {
     fi
     if [[ ${component} == "buildstage-development" ]] \
       || [[ ${component} == "buildstage-production" ]]; then
-      compile_build_args
+      compile_build_args ${dockerfile_args[*]}
     fi
   done
 }
 
 compile_header() {
-  vars=($@)
-  sorted=($(sort <<<${vars[*]}))
+  sorted=($(printf '%s\n' "$@" | sort))
   file=""
   for i in ${sorted[*]}; do
-    IFS=","; set -- $i; file+=$(printf '%-15s := %s\\n' "$1" "$2");
+    IFS=","
+    set -- $i;
+    if [ "$1" == "GROUP_ID" ] && [ "$2" == "_" ]; then
+      file+=$(printf '%-15s ?= %s\\n' "$1" "\$(shell id -u)");
+    elif [ "$1" == "USER_ID" ] && [ "$2" == "_" ]; then
+      file+=$(printf '%-15s ?= %s\\n' "$1" "\$(shell id -g)");
+    else
+      file+=$(printf '%-15s ?= %s\\n' "$1" "$2");
+    fi
     unset IFS
   done
   # Strip the last newline
@@ -164,61 +172,72 @@ if [[ ${regenerate_repository} == 0 ]]; then
   if [ "${enable_git}" == '1' ]; then
     printf "$(cd "${repo_name}" && git init > /dev/null)"
   fi
-  mkdir "${repo_name}"/build
-
-  if [ -z ${workspace_name+x} ]; then
-    mkdir "${repo_name}/workspace"
-  else
-    mkdir "${repo_name}/${workspace_name}"
-  fi
-  mkdir "${repo_name}"/build/resources
-  touch "${repo_name}"/build/packagelist
-
-  file=""
-  compile_file "dockerfile"
-  echo "${file}" | head -c -1 > "${repo_name}/Dockerfile"
-
-  compile_header ${dockerfile_args[*]}
-  compile_file "makefile"
-  printf "${file}" | head -c -1 > "${repo_name}/Makefile"
-
-  file="# ${repo_name}"
-  compile_file "readme"
-  echo "${file}" | head -c -1 > "${repo_name}/README.md"
-
-  # Generate .dockerignore
-  cat ${path_templates}/components/dockerignore  > "${repo_name}"/.dockerignore
-  for component in ${dockerignore_entries[*]}; do
-    echo "${component}" >> "${repo_name}"/.dockerignore
-  done
-
-  # Create any directories and files as listed in the template
-  for directory in ${create_directories[*]}; do
-    mkdir -p "${repo_name}/${directory}"
-  done
-
-  if [ "${enable_git}" == '1' ]; then
-    # Generate .gitignore
-    cat ${path_templates}/components/gitignore  > "${repo_name}"/.gitignore
-    for component in ${gitignore_entries[*]}; do
-      echo "${component}" >> "${repo_name}"/.gitignore
-    done
-
-    # Automatically commit template files
-    printf "$(cd "${repo_name}" && git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
-  fi
-  echo "Created ${repository} based docker-bbq repo '${repo_name}'"
-else
-  if [ -f Makefile ]; then
-    file=""
-    compile_file "dockerfile"
-    echo "${file}" | head -c -1 > "Dockerfile"
-
-    compile_header ${dockerfile_args[*]}
-    compile_file "makefile"
-    printf "${file}" | head -c -1 > "Makefile"
-    echo "Regenerated docker-bbq repository '$(basename $(pwd))' using template: ${repository}"
-  else
-    echo "Could not find an existing Makefile to regenerate - aborting!"
-  fi
+  cd ${repo_name}
 fi
+
+if [ -z ${workspace_name+x} ]; then
+  workspace_name=${default_workspace_name}
+fi
+
+required_directories=(
+  ${workspace_name}
+  build
+  build/resources
+)
+
+required_files=(
+  build/packagelist
+)
+
+for required_directory in ${required_directories[*]}; do
+  if [ ! -d ${required_directory} ]; then
+    mkdir ${required_directory}
+  fi
+done
+
+for required_file in ${required_files[*]}; do
+  if [ ! -f ${required_file} ]; then
+    touch ${required_file}
+  fi
+done
+
+file=""
+compile_file "dockerfile"
+echo "${file}" | head -c -1 > Dockerfile
+
+dockerfile_args+=(
+  "GROUP_ID,_"
+)
+dockerfile_args+=(
+  "USER_ID,_"
+)
+compile_header ${dockerfile_args[*]}
+compile_file "makefile"
+printf "${file}" | head -c -1 > Makefile
+
+file="# ${repo_name}"
+compile_file "readme"
+echo "${file}" | head -c -1 > README.md
+
+# Generate .dockerignore
+cat ${path_templates}/components/dockerignore  > .dockerignore
+for component in ${dockerignore_entries[*]}; do
+  echo "${component}" >> .dockerignore
+done
+
+# Create any directories and files as listed in the template
+for directory in ${create_directories[*]}; do
+  mkdir -p "${directory}"
+done
+
+if [ "${enable_git}" == '1' ]; then
+  # Generate .gitignore
+  cat ${path_templates}/components/gitignore  > .gitignore
+  for component in ${gitignore_entries[*]}; do
+    echo "${component}" >> .gitignore
+  done
+
+  # Automatically commit template files
+  printf "$(git add . && git commit --quiet --message "Add docker-bbq ${repository} template")"
+fi
+echo "Populated ${repository}-based docker-bbq repository: '${repo_name}'"
