@@ -261,16 +261,13 @@ if [ "${enable_git}" == '1' ]; then
   if [ -d .git ]; then
     # Were there any changes made?
     if [ "$(git status --short)" != "" ]; then
-      echo "Commiting changes to current git repository"
-      if [[ ${regenerate_repository} == 0 ]]; then
-        commit_message="Add docker-bbq ${repository} template"
+      if [[ ${regenerate_repository} == 1 ]]; then
+        echo "Changes were made to the repository - please check and commit"
       else
-        commit_message="Regenerate docker-bbq ${repository} files"
+        git add . && git commit --quiet --message "Add docker-bbq ${repository} template"
       fi
-      git add . && git commit --quiet --message "${commit_message}"
     else
       echo "Git showed no changes were made to current repository"
     fi
   fi
-
 fi
