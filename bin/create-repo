@@ -58,6 +58,8 @@ if [[ $# -eq 0 ]]; then
   usage
 fi
 
+args=()
+
 for i in "$@"
 do
 case $i in
@@ -74,12 +76,14 @@ case $i in
     --in-place|-i)
     regenerate_repository=1
     ;;
-    *) break;
+    *)
+    args+=($1)
+    ;;
   esac
   shift
 done
 
-repository="$1"
+repository="${args[0]}"
 
 check_supported "${repository}"
 
@@ -90,7 +94,7 @@ if [[ ${regenerate_repository} == 0 ]]; then
     exit 1
   fi
 
-  repo_name="$2"
+  repo_name="${args[1]}"
 
   if [[ -d "${repo_name}" ]]; then
     echo "Target directory '${repo_name}' already exists - aborting"
