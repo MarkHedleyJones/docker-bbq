@@ -1,0 +1,10 @@
+
+# Create user account (if necessary)
+ARG GROUP_ID
+ARG USER_ID
+ARG USER_NAME
+RUN if [ "${USER_NAME}" != "root" ]; then \
+  addgroup --gid ${GROUP_ID} ${USER_NAME} \
+  && adduser --disabled-password --gecos '' -G ${USER_NAME} --uid ${USER_ID} ${USER_NAME} ; \
+fi
+USER ${USER_NAME}

@@ -11,7 +11,7 @@ dockerfile_components=(
   base-install-apk-packages
   base-install-pip-packages
   base-copy-local-resources
-  base-create-user
+  base-create-user-alpine
   base-setup-workspace-vars
   target-development
   target-development-body
