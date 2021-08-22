@@ -230,6 +230,7 @@ compile_file "makefile"
 printf "${file}" | head -c -1 > Makefile
 
 file="# ${repo_name}"
+file+=$'\n'
 compile_file "readme"
 echo "${file}" | head -c -1 > README.md
 
