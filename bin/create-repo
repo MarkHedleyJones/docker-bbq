@@ -106,6 +106,9 @@ if [[ ${regenerate_repository} == 0 ]]; then
     enable_git=0
   fi
 else
+
+  repo_name="$(basename $(pwd))"
+
   # Are we going to be commiting our changes?
   if [ -d .git ] && [ "${enable_git}" == "1" ]; then
     # Is the repository clean?
@@ -241,7 +244,7 @@ for directory in ${create_directories[*]}; do
   mkdir -p "${directory}"
 done
 
-if [ "${repo_name}" != "" ]; then
+if [[ ${regenerate_repository} == 0 ]]; then
   echo "Created ${repository}-based docker-bbq repository: '${repo_name}'"
 else
   echo "Folder has been populated with ${repository}-based docker-bbq template"
