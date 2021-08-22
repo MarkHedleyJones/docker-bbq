@@ -73,6 +73,11 @@ test_downloaded_uri_is_in_image() {
             /workspace/target.sh"'
 }
 
+test_build_with_non_root_user_account() {
+  name="Build with non-root user account"
+  pass 'USER_NAME=user make'
+}
+
 for repository in ${repositories[*]}; do
   subheading "${repository} template"
   test_create_repository
@@ -85,6 +90,7 @@ for repository in ${repositories[*]}; do
   test_pip_package_installed
   test_downloading_external_uris
   test_downloaded_uri_is_in_image
+  test_build_with_non_root_user_account
 
   # Clean-up
   cd ${base_dir} && rm -rf ${TESTREPO}
