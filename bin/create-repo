@@ -101,6 +101,16 @@ if [[ ${regenerate_repository} == 0 ]]; then
     echo ${repo_name}" will not be setup with git as ~/.gitconfig could not be found"
     enable_git=0
   fi
+else
+  # Are we going to be commiting our changes?
+  if [ -d .git ] && [ "${enable_git}" == "1" ]; then
+    # Is the repository clean?
+    if [ "$(git status --short)" != "" ]; then
+      echo "ERROR: Current repository is not clean - aborting!"
+      echo "Please commit or stash your current changes and try again."
+      exit 1
+    fi
+  fi
 fi
 
 # Load the components (contains arrays to use eval)
