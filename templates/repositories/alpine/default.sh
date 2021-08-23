@@ -2,8 +2,6 @@
 
 dockerfile_args=(
   BASE_IMAGE,alpine:latest
-  GROUP_ID,1000
-  USER_ID,1000
   USER_NAME,root
   WORKSPACE_NAME,workspace
 )
@@ -13,7 +11,7 @@ dockerfile_components=(
   base-install-apk-packages
   base-install-pip-packages
   base-copy-local-resources
-  base-create-user
+  base-create-user-alpine
   base-setup-workspace-vars
   target-development
   target-development-body
