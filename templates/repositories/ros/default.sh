@@ -3,7 +3,7 @@
 workspace_name=catkin_ws
 
 dockerfile_args=(
-  APT_MIRROR,auto
+  APT_MIRROR,'""'
   BASE_IMAGE,ros:noetic-ros-base
   USER_NAME,root
   WORKSPACE_NAME,${workspace_name}
