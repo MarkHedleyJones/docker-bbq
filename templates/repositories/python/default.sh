@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 dockerfile_args=(
-  APT_MIRROR,auto
+  APT_MIRROR,'""'
   BASE_IMAGE,python:3-buster
   USER_NAME,root
   WORKSPACE_NAME,workspace
