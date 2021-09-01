@@ -8,9 +8,6 @@ default_workspace_name="workspace"
 enable_git=1
 regenerate_repository=0
 
-# Default Makefile settings (to be overridden by templates)
-docker_cmd="DOCKER_BUILDKIT=1 docker"
-
 usage() {
   cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") <template-name> <project-name>
@@ -133,8 +130,9 @@ compile_build_args() {
   vars+=( "WORKDIR,_" )
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
-    IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n";
-    unset IFS
+    if [ "${i:0:12}" != "USE_BUILDKIT" ]; then
+      IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"; unset IFS
+    fi
   done
   file+='\t\t--tag $(IMAGE_NAME):$(IMAGE_TAG) \x5C\n\t\t.\n'
 }
@@ -221,8 +219,7 @@ echo "${file}" | head -c -1 > Dockerfile
 
 dockerfile_args+=(
   "GROUP_ID,_"
-)
-dockerfile_args+=(
+  "USE_BUILDKIT,0"
   "USER_ID,_"
 )
 compile_header ${dockerfile_args[*]}

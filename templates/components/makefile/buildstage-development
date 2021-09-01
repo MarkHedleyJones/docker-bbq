@@ -2,5 +2,5 @@
 # A development build does not include the workspace
 .PHONY: build-development-image
 build-development-image:
-	$(DOCKER_CMD) build \
+	DOCKER_BUILDKIT=$(USE_BUILDKIT) docker build \
 		--target development-image \
