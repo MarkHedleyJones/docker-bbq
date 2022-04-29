@@ -107,7 +107,7 @@ else
   repo_name="$(basename $(pwd))"
 
   # Are we going to be commiting our changes?
-  if [ -d .git ] && [ "${enable_git}" == "1" ]; then
+  if [ -d .git ] && [ "${enable_git}" = "1" ]; then
     # Is the repository clean?
     if [ "$(git status --short)" != "" ]; then
       echo "ERROR: Current repository is not clean - aborting!"
@@ -132,10 +132,8 @@ compile_build_args() {
   vars+=( "WORKDIR,_" )
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
-    echo "INPUT: ${tag} $i"
     if [ "${tag}" = "development" ] && [ "${i:0:5}" = "USER_" ]; then
       # Override the development GID, UID and USER with current user values
-      echo " - Doing override"
       if [ "${i:0:8}" = "USER_GID" ]; then
         file+='''\t\t--build-arg USER_GID=$(shell id --group) \x5C\n'''
       elif [ "${i:0:8}" = "USER_UID" ]; then
@@ -143,10 +141,9 @@ compile_build_args() {
       elif [ "${i:0:8}" = "USER_NAM" ]; then
         file+='''\t\t--build-arg USER_NAME=$(shell id --user --name) \x5C\n'''
       fi
-    elif [ "${i:0:12}" != "USE_BUILDKIT" ]; then
+    elif [ "${i:0:12}" != "USE_BUILDKIT" ] && [ "${i:0:3}" != "TAG" ]; then
       IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"; unset IFS
     fi
-    echo ""
   done
   file+='\t\t--tag $(IMAGE_NAME):'
   file+="${tag}"
@@ -188,7 +185,6 @@ compile_header() {
     "USE_BUILDKIT"
   )
   for i in ${sorted[*]}; do
-    echo "header - ${i}"
     IFS=","
     set -- $i;
     if [[ ! " ${reserved_params[@]} " =~ " $1 " ]]; then
@@ -199,7 +195,6 @@ compile_header() {
   file+=$'\n'
   file+='# These settings apply only to the production-image\n'
   for i in ${sorted[*]}; do
-    echo "header - ${i}"
     IFS=","
     set -- $i;
     if [[ " ${reserved_params[@]} " =~ " $1 " ]]; then
