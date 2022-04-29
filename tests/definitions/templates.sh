@@ -47,7 +47,7 @@ test_packagelist_intact_after_build() {
 }
 
 test_pip_package_installation() {
-  printf "pip-date\ntiny" > build/pip3-requirements.txt
+  printf "meowsay\ndinosay" > build/pip3-requirements.txt
   name="PIP package installation"
   pass make
   rm build/pip3-requirements.txt
@@ -55,7 +55,7 @@ test_pip_package_installation() {
 
 test_pip_package_installed() {
   name="PIP package installed"
-  pass 'run pip-date | grep "Done!"'
+  pass 'run dinosay -d trice "Dinosaurs" | grep "Dinosaurs"'
 }
 
 test_downloading_external_uris() {
@@ -68,9 +68,9 @@ test_downloading_external_uris() {
 
 test_downloaded_uri_is_in_image() {
   name="Downloaded URI is in image"
-  pass 'run "cat /build/resources/LICENSE | grep "MIT License" && \
-            cat /build/resources/README.md | grep "# docker-bbq" && \
-            /workspace/target.sh"'
+  pass "run 'cat /build/resources/LICENSE | grep \"MIT License\" && \
+            cat /build/resources/README.md | grep \"docker-bbq\" && \
+            /workspace/target.sh'"
 }
 
 test_build_with_non_root_user_account() {

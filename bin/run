@@ -48,31 +48,15 @@ find_repo_name() {
 }
 
 get_docker_images() {
-  docker_images_clean=($(docker image list --format "{{.Repository}}" --filter=reference='*:latest'))
-  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false))
+  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false | grep -v "<none>$"))
 }
 
 list_docker_images() {
   get_docker_images
-  for image in "${docker_images_clean[@]}"; do
-    echo "${image}"
+  for image in "${docker_images_full[@]}"; do
+    echo "$(basename ${image})"
   done
   exit 0
-}
-
-parse_image_and_tag_input() {
-  if [[ $# -ne 1 ]]; then
-    input_image=NULL
-    input_tag=NULL
-  elif [[ "${1}" =~ ":" ]]; then
-    # Split the image into its image and tag components
-    IFS=':' read -r input_image input_tag <<< "${1}:"
-  else
-    input_image="${1}"
-    input_tag="latest"
-  fi
-  testing "user_image" "${input_image}"
-  testing "user_tag" "${input_tag}"
 }
 
 set_container_name() {
@@ -92,17 +76,13 @@ set_workspace_path() {
   if [[ "${repository_path}" != "" ]]; then
     if [[ -f "${repository_path}/.docker-bbq" ]]; then
       source ${repository_path}/.docker-bbq
-      image_workspace="${WORKSPACE_PATH}/${WORKSPACE_NAME}"
-      if [[ "${MOUNT_WORKSPACE}" != "False" ]]; then
-        local_workspace="${repository_path}/${WORKSPACE_NAME}"
-      fi
+      image_workspace="${HOME}/${WORKSPACE_NAME}"
+      local_workspace="${repository_path}/${WORKSPACE_NAME}"
       if [[ "${PRIVILEGED}" == "True" ]]; then
         run_with_privileges=1
       fi
       unset PRIVILEGED
       unset WORKSPACE_NAME
-      unset WORKSPACE_PATH
-      unset MOUNT_WORKSPACE
     else
       info "Repository does not contain a .docker-bbq file" \
            "- no workspace will be mounted"
@@ -178,7 +158,7 @@ user_command=""
 
 if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-bbq repository
-  tag="latest"
+  tag="development"
   set_container_name "${image}" "${tag}"
   set_workspace_path "${repository_path}"
 
@@ -304,21 +284,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   testing "${command}"
 
   if [[ "${TESTING}" == "False" ]]; then
-
     eval "${command}"
-
-    if [[ ${image_workspace} != "" ]]; then
-      # Recursively set permissions of workspace folder
-      fix_permission_command="chown --recursive "
-      fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
-
-      eval "docker run \
-        --rm \
-        --entrypoint="" \
-        ${docker_args_mount_workdir} \
-        ${image}:${tag} \
-        ${shell} -c '${fix_permission_command}'"
-    fi
   fi
 else
   info "Running in existing container (${image}:${tag})"

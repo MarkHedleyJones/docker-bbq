@@ -3,5 +3,6 @@
 # PRE-PRODUCTION STAGE - transform workspace into production-ready state
 ################################################################################
 FROM base AS pre-production
+ARG USER_NAME
 ARG WORKSPACE_NAME
-COPY $WORKSPACE_NAME $WORKSPACE
+COPY --chown=${USER_NAME} $WORKSPACE_NAME $WORKSPACE

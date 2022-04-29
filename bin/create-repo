@@ -107,7 +107,7 @@ else
   repo_name="$(basename $(pwd))"
 
   # Are we going to be commiting our changes?
-  if [ -d .git ] && [ "${enable_git}" == "1" ]; then
+  if [ -d .git ] && [ "${enable_git}" = "1" ]; then
     # Is the repository clean?
     if [ "$(git status --short)" != "" ]; then
       echo "ERROR: Current repository is not clean - aborting!"
@@ -126,15 +126,30 @@ if [ -z ${dockerfile_args+x} ]; then
 fi
 
 compile_build_args() {
+  local tag="${1}"
+  shift
   vars=(${dockerfile_args[@]})
   vars+=( "WORKDIR,_" )
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
-    if [ "${i:0:12}" != "USE_BUILDKIT" ]; then
+    if [ "${tag}" = "development" ] && [ "${i:0:7}" = "WORKDIR" ]; then
+      file+='''\t\t--build-arg WORKDIR=$(HOME) \x5C\n'''
+    elif [ "${tag}" = "development" ] && [ "${i:0:5}" = "USER_" ]; then
+      # Override the development GID, UID and USER with current user values
+      if [ "${i:0:8}" = "USER_GID" ]; then
+        file+='''\t\t--build-arg USER_GID=$(shell id --group) \x5C\n'''
+      elif [ "${i:0:8}" = "USER_UID" ]; then
+        file+='''\t\t--build-arg USER_UID=$(shell id --user) \x5C\n'''
+      elif [ "${i:0:8}" = "USER_NAM" ]; then
+        file+='''\t\t--build-arg USER_NAME=$(shell id --user --name) \x5C\n'''
+      fi
+    elif [ "${i:0:12}" != "USE_BUILDKIT" ] && [ "${i:0:3}" != "TAG" ]; then
       IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"; unset IFS
     fi
   done
-  file+='\t\t--tag $(IMAGE_NAME):$(IMAGE_TAG) \x5C\n\t\t.\n'
+  file+='\t\t--tag $(IMAGE_NAME):'
+  file+="${tag}"
+  file+=' \x5C\n\t\t.\n'
 }
 
 compile_file() {
@@ -144,7 +159,7 @@ compile_file() {
   fi
   eval "components=\"\${${filetype}_components[*]}\""
   for component in ${components}; do
-    if [[ " ${component} " =~ "/" ]]; then
+    if [[ " ${component} " =~ " / " ]]; then
       component_path="${path_repositories}/${component}"
     else
       component_path="${path_templates}/components/${filetype}/${component}"
@@ -153,9 +168,10 @@ compile_file() {
       file+="$(cat "${component_path}" | sed '${/^$/d;}')"
       file+=$'\n'
     fi
-    if [[ ${component} == "buildstage-development" ]] \
-      || [[ ${component} == "buildstage-production" ]]; then
-      compile_build_args ${dockerfile_args[*]}
+    if [[ ${component} == "buildstage-development" ]]; then
+      compile_build_args 'development'
+    elif [[ ${component} == "buildstage-production" ]]; then
+      compile_build_args '$(TAG)'
     fi
   done
 }
@@ -163,19 +179,34 @@ compile_file() {
 compile_header() {
   sorted=($(printf '%s\n' "$@" | sort))
   file=""
+  reserved_params=(
+    "TAG"
+    "USER_GID"
+    "USER_NAME"
+    "USER_UID"
+    "USE_BUILDKIT"
+  )
   for i in ${sorted[*]}; do
     IFS=","
     set -- $i;
-    if [ "$1" == "GROUP_ID" ] && [ "$2" == "_" ]; then
-      file+=$(printf '%-15s ?= %s\\n' "$1" "\$(shell id -u)");
-    elif [ "$1" == "USER_ID" ] && [ "$2" == "_" ]; then
-      file+=$(printf '%-15s ?= %s\\n' "$1" "\$(shell id -g)");
-    else
-      file+=$(printf '%-15s ?= %s\\n' "$1" "$2");
+    if [[ ! " ${reserved_params[@]} " =~ " $1 " ]]; then
+      file+=$(printf '%-15s := %s\\n' "$1" "$2");
     fi
     unset IFS
   done
-  # Strip the last newline
+  file+=$'\n'
+  file+='# These settings only apply to the production image\n'
+  for i in ${sorted[*]}; do
+    IFS=","
+    set -- $i;
+    if [[ " ${reserved_params[@]} " =~ " $1 " ]]; then
+      file+=$(printf '%-15s := %s\\n' "$1" "$2");
+    fi
+    unset IFS
+  done
+  file+=$'\n'
+  file+='# Option to build the image using Docker buildkit\n'
+  file+=$(printf '%-15s ?= %s\\n' "USE_BUILDKIT" "0");
   file=${file%\\n}
 }
 
@@ -218,9 +249,7 @@ compile_file "dockerfile"
 echo "${file}" | head -c -1 > Dockerfile
 
 dockerfile_args+=(
-  "GROUP_ID,_"
-  "USE_BUILDKIT,0"
-  "USER_ID,_"
+  "TAG,latest"
 )
 compile_header ${dockerfile_args[*]}
 compile_file "makefile"

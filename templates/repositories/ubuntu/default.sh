@@ -5,7 +5,9 @@ tag=${tag:-latest}
 dockerfile_args=(
   APT_MIRROR,'""'
   BASE_IMAGE,ubuntu:latest
-  USER_NAME,root
+  USER_GID,1000
+  USER_UID,1000
+  USER_NAME,user
   WORKSPACE_NAME,workspace
 )
 
