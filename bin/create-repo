@@ -250,7 +250,6 @@ echo "${file}" | head -c -1 > Dockerfile
 
 dockerfile_args+=(
   "TAG,latest"
-  "USE_BUILDKIT,0"
 )
 compile_header ${dockerfile_args[*]}
 compile_file "makefile"
