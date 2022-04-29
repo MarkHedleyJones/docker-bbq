@@ -1,5 +1,6 @@
 
-# Editing below this line may cause things to break - warranty void if modified!
+# Use caution when editing below this line - things may break
+################################################################################
 IMAGE_NAME     := $(shell basename $(CURDIR))
 WORKDIR        := $(shell if [ '$(USER_NAME)' = 'root' ]; then echo '/root'; \
 				  else echo '/home/$(USER_NAME)'; fi)
