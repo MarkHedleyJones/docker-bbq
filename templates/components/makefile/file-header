@@ -1,8 +1,6 @@
 
 # Editing below this line may cause things to break - warranty void if modified!
-
 IMAGE_NAME     := $(shell basename $(CURDIR))
-IMAGE_TAG      := latest
 WORKDIR        := $(shell if [ '$(USER_NAME)' = 'root' ]; then echo '/root'; \
 				  else echo '/home/$(USER_NAME)'; fi)
 

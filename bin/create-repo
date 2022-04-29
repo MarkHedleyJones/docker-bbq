@@ -126,6 +126,8 @@ if [ -z ${dockerfile_args+x} ]; then
 fi
 
 compile_build_args() {
+  local tag="${1}"
+  shift
   vars=(${dockerfile_args[@]})
   vars+=( "WORKDIR,_" )
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
@@ -134,7 +136,9 @@ compile_build_args() {
       IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"; unset IFS
     fi
   done
-  file+='\t\t--tag $(IMAGE_NAME):$(IMAGE_TAG) \x5C\n\t\t.\n'
+  file+='\t\t--tag $(IMAGE_NAME):'
+  file+="${tag}"
+  file+=' \x5C\n\t\t.\n'
 }
 
 compile_file() {
@@ -153,9 +157,10 @@ compile_file() {
       file+="$(cat "${component_path}" | sed '${/^$/d;}')"
       file+=$'\n'
     fi
-    if [[ ${component} == "buildstage-development" ]] \
-      || [[ ${component} == "buildstage-production" ]]; then
-      compile_build_args ${dockerfile_args[*]}
+    if [[ ${component} == "buildstage-development" ]]; then
+      compile_build_args 'development'
+    elif [[ ${component} == "buildstage-production" ]]; then
+      compile_build_args '$(TAG)'
     fi
   done
 }
@@ -218,9 +223,10 @@ compile_file "dockerfile"
 echo "${file}" | head -c -1 > Dockerfile
 
 dockerfile_args+=(
+  "TAG,latest"
   "GROUP_ID,_"
-  "USE_BUILDKIT,0"
   "USER_ID,_"
+  "USE_BUILDKIT,0"
 )
 compile_header ${dockerfile_args[*]}
 compile_file "makefile"

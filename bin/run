@@ -48,31 +48,15 @@ find_repo_name() {
 }
 
 get_docker_images() {
-  docker_images_clean=($(docker image list --format "{{.Repository}}" --filter=reference='*:latest'))
-  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false))
+  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false | grep -v "<none>$"))
 }
 
 list_docker_images() {
   get_docker_images
-  for image in "${docker_images_clean[@]}"; do
-    echo "${image}"
+  for image in "${docker_images_full[@]}"; do
+    echo "$(basename ${image})"
   done
   exit 0
-}
-
-parse_image_and_tag_input() {
-  if [[ $# -ne 1 ]]; then
-    input_image=NULL
-    input_tag=NULL
-  elif [[ "${1}" =~ ":" ]]; then
-    # Split the image into its image and tag components
-    IFS=':' read -r input_image input_tag <<< "${1}:"
-  else
-    input_image="${1}"
-    input_tag="latest"
-  fi
-  testing "user_image" "${input_image}"
-  testing "user_tag" "${input_tag}"
 }
 
 set_container_name() {
@@ -178,7 +162,7 @@ user_command=""
 
 if [[ "${image}" != "NULL" ]]; then
   # We are inside a docker-bbq repository
-  tag="latest"
+  tag="development"
   set_container_name "${image}" "${tag}"
   set_workspace_path "${repository_path}"
 
