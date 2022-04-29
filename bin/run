@@ -288,21 +288,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   testing "${command}"
 
   if [[ "${TESTING}" == "False" ]]; then
-
     eval "${command}"
-
-    if [[ ${image_workspace} != "" ]]; then
-      # Recursively set permissions of workspace folder
-      fix_permission_command="chown --recursive "
-      fix_permission_command+="$(id -u):$(id -g) ${image_workspace}"
-
-      eval "docker run \
-        --rm \
-        --entrypoint="" \
-        ${docker_args_mount_workdir} \
-        ${image}:${tag} \
-        ${shell} -c '${fix_permission_command}'"
-    fi
   fi
 else
   info "Running in existing container (${image}:${tag})"
