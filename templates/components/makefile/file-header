@@ -1,10 +1,9 @@
 
 # Use caution when editing below this line - things may break
 ################################################################################
-IMAGE_NAME     := $(shell basename $(CURDIR))
-WORKDIR        := $(shell if [ '$(USER_NAME)' = 'root' ]; then echo '/root'; \
-				  else echo '/home/$(USER_NAME)'; fi)
-
+IMAGE_NAME      := $(shell basename $(CURDIR))
+WORKDIR         := $(shell if [ '$(USER_NAME)' = 'root' ]; then echo '/root'; \
+				           else echo '/home/$(USER_NAME)'; fi)
 .PHONY: development
 development: pre-build build-development-image post-build
 

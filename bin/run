@@ -76,17 +76,13 @@ set_workspace_path() {
   if [[ "${repository_path}" != "" ]]; then
     if [[ -f "${repository_path}/.docker-bbq" ]]; then
       source ${repository_path}/.docker-bbq
-      image_workspace="${WORKSPACE_PATH}/${WORKSPACE_NAME}"
-      if [[ "${MOUNT_WORKSPACE}" != "False" ]]; then
-        local_workspace="${repository_path}/${WORKSPACE_NAME}"
-      fi
+      image_workspace="${HOME}/${WORKSPACE_NAME}"
+      local_workspace="${repository_path}/${WORKSPACE_NAME}"
       if [[ "${PRIVILEGED}" == "True" ]]; then
         run_with_privileges=1
       fi
       unset PRIVILEGED
       unset WORKSPACE_NAME
-      unset WORKSPACE_PATH
-      unset MOUNT_WORKSPACE
     else
       info "Repository does not contain a .docker-bbq file" \
            "- no workspace will be mounted"

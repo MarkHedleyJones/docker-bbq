@@ -132,7 +132,9 @@ compile_build_args() {
   vars+=( "WORKDIR,_" )
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
-    if [ "${tag}" = "development" ] && [ "${i:0:5}" = "USER_" ]; then
+    if [ "${tag}" = "development" ] && [ "${i:0:7}" = "WORKDIR" ]; then
+      file+='''\t\t--build-arg WORKDIR=$(HOME) \x5C\n'''
+    elif [ "${tag}" = "development" ] && [ "${i:0:5}" = "USER_" ]; then
       # Override the development GID, UID and USER with current user values
       if [ "${i:0:8}" = "USER_GID" ]; then
         file+='''\t\t--build-arg USER_GID=$(shell id --group) \x5C\n'''
