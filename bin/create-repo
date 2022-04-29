@@ -195,7 +195,7 @@ compile_header() {
     unset IFS
   done
   file+=$'\n'
-  file+='# These settings apply only to the production-image\n'
+  file+='# These settings only apply to the production image\n'
   for i in ${sorted[*]}; do
     IFS=","
     set -- $i;
