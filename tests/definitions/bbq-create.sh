@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 name='Valid template exits success'
-pass 'create-repo debian ${TESTREPO}'
+pass 'bbq-create debian ${TESTREPO}'
 
 name='Template directory created'
 pass 'find . -type d | grep ${TESTREPO}'
 
 name='Dont overwrite existing repo'
-fail 'create-repo debian ${TESTREPO}'
+fail 'bbq-create debian ${TESTREPO}'
 
 # Remove previously created repo
 rm -rf ${TESTREPO}
 
 name='Invalid template exits with failure'
-fail 'create-repo non-existant-template ${TESTREPO}'
+fail 'bbq-create non-existant-template ${TESTREPO}'

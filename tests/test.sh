@@ -17,7 +17,7 @@ rm -rf ${test_basedir}
 mkdir -p ${test_basedir}
 
 test_sequence=(
-  create-repo.sh
+  bbq-create.sh
   building-repositories.sh
   run-command.sh
 )
@@ -67,9 +67,9 @@ export TESTREPO
 export DOCKER_BBQ_NON_INTERACTIVE=1
 
 # Override locations to remove need for installation before test
-create-repo() {
-  echo "${BASEDIR}/bin/create-repo $*"
-  "${BASEDIR}/bin/create-repo" $*
+bbq-create() {
+  echo "${BASEDIR}/bin/bbq-create $*"
+  "${BASEDIR}/bin/bbq-create" $*
 }
 
 run() {

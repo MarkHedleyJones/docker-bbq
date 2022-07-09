@@ -15,7 +15,7 @@ fi
 
 test_create_repository() {
   name="Create repository"
-  pass 'create-repo "${repository}" ${TESTREPO}'
+  pass 'bbq-create "${repository}" ${TESTREPO}'
 }
 
 test_build_development_image() {

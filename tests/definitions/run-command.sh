@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-create-repo debian ${TESTREPO} > /dev/null 2>&1
+bbq-create debian ${TESTREPO} > /dev/null 2>&1
 cd ${TESTREPO}
 repo_path=$(pwd)
 
