@@ -2,10 +2,11 @@
 
 TESTING="${TESTING:=False}"
 
-verbosity=0
-interactive=1
-run_with_privileges=0
 input_repo_path=""
+interactive=1
+link_aws_credentials=0
+run_with_privileges=0
+verbosity=0
 
 # Allow disabling interactive/tty mode via environment variable (for CI)
 if [ ${DOCKER_BBQ_NON_INTERACTIVE} ]; then
@@ -115,6 +116,10 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
 OPTIONS:
 
+  -n, --non-interactive
+                  Run in non-interactive mode (no tty)
+  -v, --verbose   Print verbose output
+  --aws           Link AWS credentials into the container
   -h, --help      Print this help and exit
   -l, --list      Print the list of docker images and exit
   -r, --repo      Provide a path to a docker-bbq repository
@@ -131,11 +136,15 @@ EOF
 # Parse parameters
 while :; do
   case "${1-}" in
+  --aws) link_aws_credentials=1 ;;
   -h | --help) usage ;;
   -l | --list) list_docker_images ;;
-  -v | --verbose) verbosity=1 ;;
   -n | --non-interactive) interactive=0 ;;
-  -r | --repo) input_repo_path="${2}" ; shift ;;
+  -r | --repo)
+    input_repo_path="${2}"
+    shift
+    ;;
+  -v | --verbose) verbosity=1 ;;
   -?*) error "Unknown option: $1" ;;
   *) break ;;
   esac
@@ -233,6 +242,11 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
 
   if [[ ${local_workspace} != "" ]]; then
     info "Linking ${local_workspace} into ${image}:${image_workspace}"
+  fi
+
+  if [ ${link_aws_credentials} -eq 1 ]; then
+    info "Linking AWS credentials into ${image}:${container_workdir}"
+    docker_args_mount_workdir+="-v ${HOME}/.aws:${container_workdir}/.aws "
   fi
 
   docker_args_display=""
