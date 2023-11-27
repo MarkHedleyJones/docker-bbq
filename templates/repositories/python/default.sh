@@ -2,7 +2,7 @@
 
 dockerfile_args=(
   APT_MIRROR,'""'
-  BASE_IMAGE,python:3-buster
+  BASE_IMAGE,python:3-slim
   USER_GID,1000
   USER_UID,1000
   USER_NAME,user
