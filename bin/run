@@ -30,7 +30,10 @@ info() {
 }
 
 absolute_path() {
-  echo "$(cd "$(dirname "$1")" || return; pwd)/$(basename "$1")"
+  echo "$(
+    cd "$(dirname "$1")" || return
+    pwd
+  )/$(basename "$1")"
 }
 
 find_repo_name() {
@@ -86,7 +89,7 @@ set_workspace_path() {
       unset WORKSPACE_NAME
     else
       info "Repository does not contain a .docker-bbq file" \
-           "- no workspace will be mounted"
+        "- no workspace will be mounted"
     fi
   fi
 }
@@ -150,7 +153,6 @@ while :; do
   esac
   shift
 done
-
 
 if [[ "${input_repo_path}" == "" ]]; then
   testing "Searching for reposiory based on current working path"
@@ -266,7 +268,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
       # Expose direct rendering interface
       docker_args_display+="--device /dev/dri:/dev/dri "
     fi
-    if command -v nvidia-smi > /dev/null; then
+    if command -v nvidia-smi >/dev/null; then
       # Enable Nvidia specific features
       docker_args_display+="--gpus=all "
       docker_args_display+="-e NVIDIA_DRIVER_CAPABILITIES=all "
