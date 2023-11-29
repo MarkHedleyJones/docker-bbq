@@ -141,8 +141,11 @@ compile_build_args() {
       elif [ "${i:0:8}" = "USER_NAM" ]; then
         file+='''\t\t--build-arg USER_NAME=$(shell id --user --name) \x5C\n'''
       fi
-    elif [ "${i:0:12}" != "USE_BUILDKIT" ] && [ "${i:0:3}" != "TAG" ]; then
-      IFS=","; set -- $i; file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"; unset IFS
+    elif [ "${i:0:3}" != "TAG" ]; then
+      IFS=","
+      set -- $i
+      file+=$(printf '''\t\t--build-arg %s=$(%s) ''' "$1" "$1")"\x5C\n"
+      unset IFS
     fi
   done
   file+='\t\t--tag $(IMAGE_NAME):'
@@ -182,7 +185,6 @@ compile_header() {
     "USER_GID"
     "USER_NAME"
     "USER_UID"
-    "USE_BUILDKIT"
   )
   for i in ${sorted[*]}; do
     IFS=","
@@ -202,9 +204,6 @@ compile_header() {
     fi
     unset IFS
   done
-  file+=$'\n'
-  file+='# Option to build the image using Docker buildkit\n'
-  file+=$(printf '%-15s ?= %s\\n' "USE_BUILDKIT" "0");
   file=${file%\\n}
 }
 

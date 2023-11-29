@@ -2,5 +2,5 @@
 # A production build includes the workspace in the final image
 .PHONY: build-production-image
 build-production-image:
-	DOCKER_BUILDKIT=$(USE_BUILDKIT) docker build \
+	docker build \
 		--target production-image \
