@@ -1,5 +1,5 @@
 # Source Catkin install workspace (when using docker run or docker exec)
 RUN echo "if [[ -f ${WORKSPACE}/install/setup.bash ]]; then\n\
   source  ${WORKSPACE}/install/setup.bash\n\
-fi" | tee --append ${HOME}/.bashrc /ros_entrypoint.sh && sed -i '/exec "$@"/d' \
+  fi" | tee --append ${HOME}/.bashrc /ros_entrypoint.sh && sed -i '/exec "$@"/d' \
   /ros_entrypoint.sh && echo 'exec "$@"' >> /ros_entrypoint.sh;
