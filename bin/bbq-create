@@ -57,23 +57,22 @@ fi
 
 args=()
 
-for i in "$@"
-do
-case $i in
-    --help|-h)
+for i in "$@"; do
+  case $i in
+  --help | -h)
     usage
     ;;
-    --list|-l)
+  --list | -l)
     show_supported
     exit
     ;;
-    --no-git)
+  --no-git)
     enable_git=0
     ;;
-    --in-place|-i)
+  --in-place | -i)
     regenerate_repository=1
     ;;
-    *)
+  *)
     args+=($1)
     ;;
   esac
@@ -83,7 +82,6 @@ done
 repository="${args[0]}"
 
 check_supported "${repository}"
-
 
 if [[ ${regenerate_repository} == 0 ]]; then
   if [[ $# -eq 1 ]]; then
@@ -129,7 +127,7 @@ compile_build_args() {
   local tag="${1}"
   shift
   vars=(${dockerfile_args[@]})
-  vars+=( "WORKDIR,_" )
+  vars+=("WORKDIR,_")
   sorted=($(printf '%s\n' "${vars[@]}" | IFS="\n" sort))
   for i in ${sorted[*]}; do
     if [ "${tag}" = "development" ] && [ "${i:0:7}" = "WORKDIR" ]; then
@@ -188,9 +186,9 @@ compile_header() {
   )
   for i in ${sorted[*]}; do
     IFS=","
-    set -- $i;
+    set -- $i
     if [[ ! " ${reserved_params[@]} " =~ " $1 " ]]; then
-      file+=$(printf '%-15s := %s\\n' "$1" "$2");
+      file+=$(printf '%-15s := %s\\n' "$1" "$2")
     fi
     unset IFS
   done
@@ -198,9 +196,9 @@ compile_header() {
   file+='# These settings only apply to the production image\n'
   for i in ${sorted[*]}; do
     IFS=","
-    set -- $i;
+    set -- $i
     if [[ " ${reserved_params[@]} " =~ " $1 " ]]; then
-      file+=$(printf '%-15s := %s\\n' "$1" "$2");
+      file+=$(printf '%-15s := %s\\n' "$1" "$2")
     fi
     unset IFS
   done
@@ -213,7 +211,7 @@ compile_header() {
 if [[ ${regenerate_repository} == 0 ]]; then
   mkdir "${repo_name}"
   if [ "${enable_git}" == '1' ]; then
-    printf "$(cd "${repo_name}" && git init > /dev/null)"
+    printf "$(cd "${repo_name}" && git init >/dev/null)"
   fi
   cd ${repo_name}
 fi
@@ -246,24 +244,24 @@ done
 
 file=""
 compile_file "dockerfile"
-echo "${file}" | head -c -1 > Dockerfile
+echo "${file}" | head -c -1 >Dockerfile
 
 dockerfile_args+=(
   "TAG,latest"
 )
 compile_header ${dockerfile_args[*]}
 compile_file "makefile"
-printf "${file}" | head -c -1 > Makefile
+printf "${file}" | head -c -1 >Makefile
 
 file="# ${repo_name}"
 file+=$'\n'
 compile_file "readme"
-echo "${file}" | head -c -1 > README.md
+echo "${file}" | head -c -1 >README.md
 
 # Generate .dockerignore
-cat ${path_templates}/components/dockerignore  > .dockerignore
+cat ${path_templates}/components/dockerignore >.dockerignore
 for component in ${dockerignore_entries[*]}; do
-  echo "${component}" >> .dockerignore
+  echo "${component}" >>.dockerignore
 done
 
 # Create any directories and files as listed in the template
@@ -279,9 +277,9 @@ fi
 
 if [ "${enable_git}" == '1' ]; then
   # Generate .gitignore
-  cat ${path_templates}/components/gitignore  > .gitignore
+  cat ${path_templates}/components/gitignore >.gitignore
   for component in ${gitignore_entries[*]}; do
-    echo "${component}" >> .gitignore
+    echo "${component}" >>.gitignore
   done
 
   # Is this a repository?
