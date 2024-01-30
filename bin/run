@@ -3,8 +3,8 @@
 TESTING="${TESTING:=False}"
 
 container_name=NULL
-folders_to_mount=()
 image_name=NULL
+workspace_path_override=false
 image_tag="development"
 input_repo_path=""
 interactive=1
@@ -131,6 +131,7 @@ OPTIONS:
   -n, --non-interactive
                   Run in non-interactive mode (no tty)
   -r, --repo      Provide a path to a docker-bbq repository
+  -t, --tag       Provide a docker image tag
   -v, --verbose   Print verbose output
 
 
@@ -143,6 +144,9 @@ EOF
   exit
 }
 
+container_workdir=""
+user_command=""
+
 # Parse parameters
 while :; do
   case "${1-}" in
@@ -151,17 +155,28 @@ while :; do
   -l | --list) list_docker_images ;;
   -i | --image)
     image_name="${2}"
-    # If specifying the image name, assume its a production image
-    image_tag="latest"
     shift
     ;;
   -n | --non-interactive) interactive=0 ;;
-  -m | --mount)
-    folders_to_mount+=("${2}")
+  -w | --workspace)
+    if [ -d "${2}" ]; then
+      local_workspace="${2}"
+    elif [ -f "${2}" ]; then
+      local_workspace="$(dirname ${2})"
+    else
+      error "Workspace path does not exist"
+    fi
+    image_workspace="${local_workspace}"
+    workspace_path_override=true
+    container_workdir="${image_workspace}"
     shift
     ;;
   -r | --repo)
     input_repo_path="${2}"
+    shift
+    ;;
+  -t | --tag)
+    image_tag="${2}"
     shift
     ;;
   -v | --verbose) verbosity=1 ;;
@@ -182,12 +197,10 @@ if [[ "${image_name}" == "NULL" ]]; then
 fi
 
 testing "image-from-working-dir" "${image_name}"
+testing "workspace_path_override" "${workspace_path_override}"
 
-container_workdir=""
-user_command=""
-
-if [ "${image_name}" != "NULL" ] && [ "${image_tag}" = "development" ]; then
-  # We are inside a docker-bbq repository
+if [ "${workspace_path_override}" = "false" ] && [ "${image_name}" != "NULL" ] && [ "${image_tag}" = "development" ]; then
+  testing "We are inside a docker-bbq repository"
   set_container_name "${image_name}" "${image_tag}"
   set_workspace_path "${repository_path}"
 
@@ -238,13 +251,6 @@ if [[ ! -f "${bash_history_path}" ]]; then
   touch "${bash_history_path}"
 fi
 docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
-
-# Add mountpoints
-docker_args_mount_folders=""
-for folder in "${folders_to_mount[@]}"; do
-  folder_full_path=$(absolute_path "${folder}")
-  docker_args_mount_folders+="-v ${folder_full_path}:/mnt/${folder_full_path} "
-done
 
 docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
@@ -317,7 +323,6 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_args_bash_history} \
     ${docker_args_display} \
     ${docker_args_mount_workdir} \
-    ${docker_args_mount_folders} \
     ${docker_args_user} \
     ${docker_args_workdir} \
     ${image_name}:${image_tag} \
