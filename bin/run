@@ -2,6 +2,10 @@
 
 TESTING="${TESTING:=False}"
 
+container_name=NULL
+folders_to_mount=()
+image_name=NULL
+image_tag="development"
 input_repo_path=""
 interactive=1
 link_aws_credentials=0
@@ -38,11 +42,11 @@ absolute_path() {
 
 find_repo_name() {
   # Crawl up tree to find Docker file, in order to find directory/repo name
-  image=NULL
+  image_name=NULL
   repository_path="$(absolute_path "$1")"
   while [[ ${repository_path} != "/" ]]; do
     if [[ -f "${repository_path}/Dockerfile" ]]; then
-      image=$(basename "${repository_path}")
+      image_name=$(basename "${repository_path}")
       return 0
     fi
     repository_path=$(dirname "${repository_path}")
@@ -58,7 +62,7 @@ get_docker_images() {
 list_docker_images() {
   get_docker_images
   for image in "${docker_images_full[@]}"; do
-    echo "$(basename ${image})"
+    echo "$(basename ${image_name})"
   done
   exit 0
 }
@@ -119,13 +123,16 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
 OPTIONS:
 
-  -n, --non-interactive
-                  Run in non-interactive mode (no tty)
-  -v, --verbose   Print verbose output
   --aws           Link AWS credentials into the container
   -h, --help      Print this help and exit
+  -i, --image     Provide a docker image name
   -l, --list      Print the list of docker images and exit
+  -m, --mount     Provide a path to a folder to mount into the container
+  -n, --non-interactive
+                  Run in non-interactive mode (no tty)
   -r, --repo      Provide a path to a docker-bbq repository
+  -v, --verbose   Print verbose output
+
 
 EXAMPLES:
 
@@ -142,7 +149,17 @@ while :; do
   --aws) link_aws_credentials=1 ;;
   -h | --help) usage ;;
   -l | --list) list_docker_images ;;
+  -i | --image)
+    image_name="${2}"
+    # If specifying the image name, assume its a production image
+    image_tag="latest"
+    shift
+    ;;
   -n | --non-interactive) interactive=0 ;;
+  -m | --mount)
+    folders_to_mount+=("${2}")
+    shift
+    ;;
   -r | --repo)
     input_repo_path="${2}"
     shift
@@ -154,23 +171,24 @@ while :; do
   shift
 done
 
-if [[ "${input_repo_path}" == "" ]]; then
-  testing "Searching for reposiory based on current working path"
-  find_repo_name "$(pwd)"
-else
-  testing "Using a user-provided path to reposiory"
-  find_repo_name "${input_repo_path}"
+if [[ "${image_name}" == "NULL" ]]; then
+  if [[ "${input_repo_path}" == "" ]]; then
+    testing "Searching for reposiory based on current working path"
+    find_repo_name "$(pwd)"
+  else
+    testing "Using a user-provided path to reposiory"
+    find_repo_name "${input_repo_path}"
+  fi
 fi
 
-testing "image-from-working-dir" "${image}"
+testing "image-from-working-dir" "${image_name}"
 
 container_workdir=""
 user_command=""
 
-if [[ "${image}" != "NULL" ]]; then
+if [ "${image_name}" != "NULL" ] && [ "${image_tag}" = "development" ]; then
   # We are inside a docker-bbq repository
-  tag="development"
-  set_container_name "${image}" "${tag}"
+  set_container_name "${image_name}" "${image_tag}"
   set_workspace_path "${repository_path}"
 
   # Make sure the working directory in the image is translated to our relative
@@ -202,8 +220,8 @@ if [[ $# -gt 0 ]]; then
   user_command+="$*"
 fi
 
-testing "image" "${image}"
-testing "tag" "${tag}"
+testing "image_name" "${image_name}"
+testing "image_tag" "${image_tag}"
 testing "container_name" "${container_name}"
 testing "local_workspace" "${local_workspace}"
 testing "image_workspace" "${image_workspace}"
@@ -221,13 +239,20 @@ if [[ ! -f "${bash_history_path}" ]]; then
 fi
 docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
 
+# Add mountpoints
+docker_args_mount_folders=""
+for folder in "${folders_to_mount[@]}"; do
+  folder_full_path=$(absolute_path "${folder}")
+  docker_args_mount_folders+="-v ${folder_full_path}:/mnt/${folder_full_path} "
+done
+
 docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
   docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
 fi
 
 # Detect which shell is installed in the image
-shell=$(docker run --entrypoint "" --rm ${image}:${tag} sh -c 'command -v bash || command -v sh')
+shell=$(docker run --entrypoint "" --rm ${image_name}:${image_tag} sh -c 'command -v bash || command -v sh')
 
 docker_command="${shell}"
 if [[ "${user_command}" != "" ]]; then
@@ -240,14 +265,14 @@ if [[ "${interactive}" -eq 1 ]]; then
 fi
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
-  info "Running in new container (${image}:${tag})"
+  info "Running in new container (${image_name}:${image_tag})"
 
   if [[ ${local_workspace} != "" ]]; then
-    info "Linking ${local_workspace} into ${image}:${image_workspace}"
+    info "Linking ${local_workspace} into ${image_name}:${image_workspace}"
   fi
 
   if [ ${link_aws_credentials} -eq 1 ]; then
-    info "Linking AWS credentials into ${image}:${container_workdir}"
+    info "Linking AWS credentials into ${image_name}:${container_workdir}"
     docker_args_mount_workdir+="-v ${HOME}/.aws:${container_workdir}/.aws "
   fi
 
@@ -292,9 +317,10 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_args_bash_history} \
     ${docker_args_display} \
     ${docker_args_mount_workdir} \
+    ${docker_args_mount_folders} \
     ${docker_args_user} \
     ${docker_args_workdir} \
-    ${image}:${tag} \
+    ${image_name}:${image_tag} \
     ${docker_command}"
 
   testing "${command}"
@@ -303,7 +329,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     eval "${command}"
   fi
 else
-  info "Running in existing container (${image}:${tag})"
+  info "Running in existing container (${image_name}:${image_tag})"
   command="docker exec \
     ${docker_args_interactive} \
     ${docker_args_workdir} \
