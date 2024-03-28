@@ -248,7 +248,6 @@ testing "image_workspace" "${image_workspace}"
 testing "container_workdir" "${container_workdir}"
 testing "user_command" "${user_command}"
 testing "run_with_privileges" ${run_with_privileges}
-testing "environment_variables" "${environment_variables}"
 testing "repository_path" "${repository_path}"
 
 docker_args_workdir+="--workdir=${container_workdir} "
