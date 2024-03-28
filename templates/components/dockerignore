@@ -1,6 +1,7 @@
 *.pyc
 .docker-bbq
+.env
 .git
 .gitignore
-__pycache__
 Makefile
+__pycache__
