@@ -1,4 +1,4 @@
-<h1>docker-bbq<br><img alt="docker-bbq" src="https://raw.githubusercontent.com/MarkHedleyJones/docker-bbq/logo/media/logo.webp"></h1>
+<h1>docker-bbq<br><img alt="docker-bbq" src="https://raw.githubusercontent.com/MarkHedleyJones/docker-bbq/master/media/logo.webp"></h1>
 
 A tool for rapidly cooking up new [Docker](https://www.docker.com/) projects while simplifying containerised software development. Free yourself from writing and optimising dockerfiles and focus on development.
 
