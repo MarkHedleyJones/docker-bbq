@@ -3,8 +3,9 @@
 TESTING="${TESTING:=False}"
 
 container_name=NULL
+path_mount_input=NULL
+path_mount_output=NULL
 image_name=NULL
-workspace_path_override=false
 image_tag="development"
 input_repo_path=""
 interactive=1
@@ -123,15 +124,19 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
 OPTIONS:
 
+  --mount-input <path>
+                  Provide a path to a folder to mount into the container (read-only)
+
+  --mount-output <path>
+                  Provide a path to a folder to mount out of the container (writeable)
+
   --aws           Link AWS credentials into the container
   -h, --help      Print this help and exit
   -i, --image     Provide a docker image name
   -l, --list      Print the list of docker images and exit
-  -m, --mount     Provide a path to a folder to mount into the container
   -n, --non-interactive
                   Run in non-interactive mode (no tty)
   -r, --repo      Provide a path to a docker-bbq repository
-  -t, --tag       Provide a docker image tag
   -v, --verbose   Print verbose output
 
 
@@ -144,9 +149,6 @@ EOF
   exit
 }
 
-container_workdir=""
-user_command=""
-
 # Parse parameters
 while :; do
   case "${1-}" in
@@ -155,28 +157,21 @@ while :; do
   -l | --list) list_docker_images ;;
   -i | --image)
     image_name="${2}"
+    # If specifying the image name, assume its a production image
+    image_tag="latest"
     shift
     ;;
   -n | --non-interactive) interactive=0 ;;
-  -w | --workspace)
-    if [ -d "${2}" ]; then
-      local_workspace="${2}"
-    elif [ -f "${2}" ]; then
-      local_workspace="$(dirname ${2})"
-    else
-      error "Workspace path does not exist"
-    fi
-    image_workspace="${local_workspace}"
-    workspace_path_override=true
-    container_workdir="${image_workspace}"
+  --mount-input)
+    path_mount_input="${2}"
+    shift
+    ;;
+  --mount-output)
+    path_mount_output="${2}"
     shift
     ;;
   -r | --repo)
     input_repo_path="${2}"
-    shift
-    ;;
-  -t | --tag)
-    image_tag="${2}"
     shift
     ;;
   -v | --verbose) verbosity=1 ;;
@@ -197,10 +192,12 @@ if [[ "${image_name}" == "NULL" ]]; then
 fi
 
 testing "image-from-working-dir" "${image_name}"
-testing "workspace_path_override" "${workspace_path_override}"
 
-if [ "${workspace_path_override}" = "false" ] && [ "${image_name}" != "NULL" ] && [ "${image_tag}" = "development" ]; then
-  testing "We are inside a docker-bbq repository"
+container_workdir=""
+user_command=""
+
+if [ "${image_name}" != "NULL" ] && [ "${image_tag}" = "development" ]; then
+  # We are inside a docker-bbq repository
   set_container_name "${image_name}" "${image_tag}"
   set_workspace_path "${repository_path}"
 
@@ -240,7 +237,9 @@ testing "local_workspace" "${local_workspace}"
 testing "image_workspace" "${image_workspace}"
 testing "container_workdir" "${container_workdir}"
 testing "user_command" "${user_command}"
-testing "run_with_privileges" ${run_with_privileges}
+testing "run_with_privileges" "${run_with_privileges}"
+testing "path_mount_input" "${path_mount_input}"
+testing "path_mount_output" "${path_mount_output}"
 
 docker_args_workdir+="--workdir=${container_workdir} "
 
@@ -251,6 +250,17 @@ if [[ ! -f "${bash_history_path}" ]]; then
   touch "${bash_history_path}"
 fi
 docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
+
+# Add IO mountpoints
+docker_args_mount_folders=""
+if [ "${path_mount_input}" != "NULL" ]; then
+  docker_args_mount_folders="--mount type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly "
+  docker_args_mount_folders+="--env INPUT_MOUNTPOINT=/mnt/input "
+fi
+if [ "${path_mount_output}" != "NULL" ]; then
+  docker_args_mount_folders+="--mount type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output "
+  docker_args_mount_folders+="--env OUTPUT_MOUNTPOINT=/mnt/output "
+fi
 
 docker_args_mount_workdir=""
 if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
@@ -323,6 +333,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_args_bash_history} \
     ${docker_args_display} \
     ${docker_args_mount_workdir} \
+    ${docker_args_mount_folders} \
     ${docker_args_user} \
     ${docker_args_workdir} \
     ${image_name}:${image_tag} \
