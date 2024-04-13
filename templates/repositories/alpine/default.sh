@@ -11,7 +11,6 @@ dockerfile_args=(
 dockerfile_components=(
   base-header
   base-install-apk-packages
-  base-install-pip-packages
   base-copy-local-resources
   base-create-user-alpine
   base-setup-workspace-vars

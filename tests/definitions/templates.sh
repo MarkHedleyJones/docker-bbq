@@ -18,88 +18,20 @@ test_create_repository() {
   pass 'bbq-create "${repository}" ${TESTREPO}'
 }
 
-test_build_development_image() {
-  cd ${TESTREPO}
-  name="Build development image"
-  pass 'make'
-}
-
-test_build_production_image() {
-  name="Build production image"
-  pass 'make production'
-}
-
-test_system_package_installation() {
-  name="System package installation"
-  printf "tinyproxy\nranger" > build/packagelist
-  pass make
-}
-
-test_system_packages_installed() {
-  name="System packages installed"
-  pass 'run tinyproxy -v | grep "tinyproxy"'
-}
-
-test_packagelist_intact_after_build() {
-  name="Packagelist intact after build"
-  pass 'cat build/packagelist | grep tinyproxy > /dev/null'
-  echo "" > build/packagelist
-}
-
-test_pip_package_installation() {
-  printf "meowsay\ndinosay" > build/pip3-requirements.txt
-  name="PIP package installation"
-  pass make
-  rm build/pip3-requirements.txt
-}
-
-test_pip_package_installed() {
-  name="PIP package installed"
-  pass 'run dinosay -d trice "Dinosaurs" | grep "Dinosaurs"'
-}
-
-test_downloading_external_uris() {
-  base_url="https://raw.githubusercontent.com/MarkHedleyJones/docker-bbq/main"
-  printf "${base_url}/LICENSE\n${base_url}/README.md\n" > build/urilist
-  name="Downloading external URIs"
-  pass make
-  rm build/urilist
-}
-
-test_downloaded_uri_is_in_image() {
-  name="Downloaded URI is in image"
-  pass "run 'cat /build/resources/LICENSE | grep \"MIT License\" && \
-            cat /build/resources/README.md | grep \"docker-bbq\" && \
-            /workspace/target.sh'"
-}
-
-test_build_with_non_root_user_account() {
-  name="Build with non-root user account"
-  pass 'USER_NAME=user make'
-}
-
 for repository in ${repositories[*]}; do
   subheading "${repository} template"
+
+  # This test is compulsory - it creates the repository
   test_create_repository
-  test_build_development_image
-  test_build_production_image
-  test_system_package_installation
-  test_system_packages_installed
-  test_packagelist_intact_after_build
-  test_pip_package_installation
-  test_pip_package_installed
-  test_downloading_external_uris
-  test_downloaded_uri_is_in_image
-  test_build_with_non_root_user_account
+
+  if [ -f "${repositories_dir}/${repository}/tests.sh" ]; then
+    source "${repositories_dir}/${repository}/tests.sh"
+  fi
+  for test in ${template_tests[*]}; do
+    cd ${TESTDIR}/${TESTREPO}
+    source "${BASEDIR}/tests/definitions/templates/${test}"
+  done
 
   # Clean-up
   cd ${base_dir} && rm -rf ${TESTREPO}
-
-  # Run any tests defined in the template
-  template_testscript="${repositories_dir}/${repository}/tests.sh"
-  if [ -f ${template_testscript} ]; then
-    source ${template_testscript}
-    # Clean-up (again)
-    cd ${base_dir} && rm -rf ${TESTREPO}
-  fi
 done
