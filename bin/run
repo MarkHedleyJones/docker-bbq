@@ -235,16 +235,24 @@ if [[ $# -gt 0 ]]; then
   user_command+="$*"
 fi
 
+environment_variables=""
+if [ ! -z ${repository_path} ] && [ -f "${repository_path}/.env" ]; then
+  while IFS= read -r line; do
+    environment_variables+="--env ${line} "
+  done <"${repository_path}/.env"
+fi
+
+testing "container_name" "${container_name}"
+testing "container_workdir" "${container_workdir}"
 testing "image_name" "${image_name}"
 testing "image_tag" "${image_tag}"
-testing "container_name" "${container_name}"
-testing "local_workspace" "${local_workspace}"
 testing "image_workspace" "${image_workspace}"
-testing "container_workdir" "${container_workdir}"
-testing "user_command" "${user_command}"
-testing "run_with_privileges" "${run_with_privileges}"
+testing "local_workspace" "${local_workspace}"
 testing "path_mount_input" "${path_mount_input}"
 testing "path_mount_output" "${path_mount_output}"
+testing "repository_path" "${repository_path}"
+testing "run_with_privileges" "${run_with_privileges}"
+testing "user_command" "${user_command}"
 
 docker_args_workdir+="--workdir=${container_workdir} "
 
@@ -341,6 +349,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     ${docker_args_mount_folders} \
     ${docker_args_user} \
     ${docker_args_workdir} \
+    ${environment_variables} \
     ${image_name}:${image_tag} \
     ${docker_command}"
 

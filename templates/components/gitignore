@@ -1,3 +1,4 @@
 *.pyc
 .docker-bbq
+.env
 __pycache__
