@@ -124,11 +124,15 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
 OPTIONS:
 
+  --mount       <path>
+                  An alias for --mount-input
   --mount-input <path>
-                  Provide a path to a folder to mount into the container (read-only)
+                  Provide a path to a folder to mount into the container
+                  will appear at /mnt/input with read-only permissions
 
   --mount-output <path>
-                  Provide a path to a folder to mount out of the container (writeable)
+                  Provide a path to a folder to mount out of the container
+                  will appear at /mnt/output with read and write permissions
 
   --aws           Link AWS credentials into the container
   -h, --help      Print this help and exit
@@ -163,7 +167,7 @@ while :; do
     shift
     ;;
   -n | --non-interactive) interactive=0 ;;
-  --mount-input)
+  --mount | --mount-input)
     path_mount_input="${2}"
     shift
     ;;
