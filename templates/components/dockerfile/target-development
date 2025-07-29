@@ -3,3 +3,4 @@
 # DEVELOPMENT TARGET - generate development-friendly image
 ################################################################################
 FROM base AS development-image
+ARG USER_NAME

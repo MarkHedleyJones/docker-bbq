@@ -22,6 +22,7 @@ dockerfile_components=(
   target-preproduction-body
   target-production
   target-production-body
+  target-production-footer
 )
 
 makefile_components=(

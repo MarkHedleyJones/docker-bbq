@@ -15,4 +15,3 @@ elif [ "${USER_NAME}" != "root" ]; then \
   fi; \
   adduser --disabled-password --gecos '' --gid ${USER_GID} --uid ${USER_UID} ${USER_NAME}; \
 fi
-USER $USER_NAME

@@ -6,6 +6,6 @@ RUN echo "#!/usr/bin/env bash\nset -eu\ncd ${WORKSPACE}\ncatkin_make \
 # Source Catkin development workspace (when using docker run or docker exec)
 RUN echo "if [[ -f ${WORKSPACE}/devel/setup.bash ]]; then\n\
   source  ${WORKSPACE}/devel/setup.bash\n\
-  fi" | tee --append ${HOME}/.bashrc /ros_entrypoint.sh && sed -i '/exec "$@"/d' \
+  fi" | tee --append ${WORKDIR}/.bashrc /ros_entrypoint.sh && sed -i '/exec "$@"/d' \
   /ros_entrypoint.sh && echo 'exec "$@"' >> /ros_entrypoint.sh;
-USER $USER_NAME
+USER ${USER_NAME}

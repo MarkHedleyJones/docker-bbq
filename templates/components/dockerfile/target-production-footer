@@ -1,0 +1,2 @@
+# Switch to non-root user for production container
+USER ${USER_NAME}

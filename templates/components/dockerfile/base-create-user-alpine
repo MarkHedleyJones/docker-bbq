@@ -7,4 +7,3 @@ RUN if [ "${USER_NAME}" != "root" ]; then \
   addgroup --gid ${USER_GID} ${USER_NAME} \
   && adduser --disabled-password --gecos '' -G ${USER_NAME} --uid ${USER_UID} ${USER_NAME} ; \
   fi
-USER $USER_NAME

@@ -1,2 +1,3 @@
 # Source the installed ROS2 workspace
 RUN echo "source /opt/ros/install/setup.bash" >> /ros_entrypoint.sh
+USER ${USER_NAME}

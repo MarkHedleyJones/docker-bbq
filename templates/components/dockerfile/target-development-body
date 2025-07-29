@@ -1,1 +1,2 @@
 # Install development tools
+USER ${USER_NAME}

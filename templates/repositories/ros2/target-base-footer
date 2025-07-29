@@ -1,5 +1,4 @@
 # Install additional ROS2 tools commonly used in development
-USER root
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-colcon-common-extensions \
