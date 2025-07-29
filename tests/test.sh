@@ -33,7 +33,7 @@ OPTIONS:
   -h, --help       Print this help and exit
   -v, --verbose    Print debug information on test failure
   -a, --all        Run standard and template repository tests
-  -t, --templates  Run only the template reposistory tests
+  -t, --templates  Run only the template repository tests
   -d, --debug      Abort on first failure and don't clean-up
 
   --template <template-name>
