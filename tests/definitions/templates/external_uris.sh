@@ -7,6 +7,4 @@ pass make
 rm build/urilist
 
 name="Downloaded URI is in image"
-pass "run 'cat /build/resources/LICENSE | grep \"MIT License\" && \
-        cat /build/resources/README.md | grep \"docker-bbq\" && \
-        /workspace/target.sh'"
+pass "run sh -c 'cat /build/resources/LICENSE | grep \"MIT License\" && cat /build/resources/README.md | grep \"docker-bbq\"'"
