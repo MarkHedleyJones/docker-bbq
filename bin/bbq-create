@@ -160,7 +160,7 @@ compile_file() {
   fi
   eval "components=\"\${${filetype}_components[*]}\""
   for component in ${components}; do
-    if [[ " ${component} " =~ " / " ]]; then
+    if [[ "${component}" =~ "/" ]]; then
       component_path="${path_repositories}/${component}"
     else
       component_path="${path_templates}/components/${filetype}/${component}"
