@@ -1,0 +1,6 @@
+# Install additional ROS2 tools commonly used in development
+RUN apt-get update && apt-get install -y \
+    python3-colcon-common-extensions \
+    python3-colcon-bash \
+    python3-colcon-zsh \
+    && rm -rf /var/lib/apt/lists/*

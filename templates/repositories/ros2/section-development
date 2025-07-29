@@ -1,0 +1,4 @@
+## Development
+The ROS2 workspace can be built from within the container by running `cb`.
+A production build uses `colcon build --install-base /opt/ros/install` so ROS2 package components must
+have corresponding *install(...)* entries in the relevant CMakeLists.txt file.

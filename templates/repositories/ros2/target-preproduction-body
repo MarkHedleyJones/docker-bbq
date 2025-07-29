@@ -1,0 +1,4 @@
+# Build ROS2 workspace for preproduction
+RUN cd ${WORKSPACE} && \
+    colcon build --install-base /opt/ros/install && \
+    rm -rf build log
