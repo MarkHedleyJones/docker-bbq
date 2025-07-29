@@ -210,7 +210,7 @@ compile_header() {
 if [[ ${regenerate_repository} == 0 ]]; then
   mkdir "${repo_name}"
   if [ "${enable_git}" == '1' ]; then
-    printf "$(cd "${repo_name}" && git init >/dev/null)"
+    printf "$(cd "${repo_name}" && git init --initial-branch=main >/dev/null)"
   fi
   cd ${repo_name}
 fi
