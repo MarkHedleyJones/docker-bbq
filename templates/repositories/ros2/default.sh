@@ -14,7 +14,7 @@ dockerfile_args=(
 dockerfile_components=(
   base-header
   base-install-apt-packages
-  base-install-pip-packages
+  ros2/base-install-pip-packages-ros2
   base-copy-local-resources
   ros2/base-create-user-ros2
   base-setup-workspace-vars

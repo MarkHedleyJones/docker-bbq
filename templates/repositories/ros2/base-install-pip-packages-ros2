@@ -1,0 +1,13 @@
+# Install Python packages (if any) from pip-requirements.txt - ROS2 version
+COPY build/tmp/pip /build/pip
+RUN if [ ! -z $(ls /build/pip) ] ; then \
+  apt-get update && \
+  apt-get install --yes --no-install-recommends python3-venv && \
+  rm -rf /var/lib/apt/lists/* && \
+  python3 -m venv /opt/pip-venv && \
+  for path in /build/pip/pip*-req*.txt ; do \
+    /opt/pip-venv/bin/pip install --no-cache-dir -r ${path} ; \
+  done && \
+  # Make pip packages available globally by symlinking binaries \
+  find /opt/pip-venv/bin -type f -executable ! -name 'pip*' ! -name 'python*' -exec ln -sf {} /usr/local/bin/ \; ; \
+  fi
