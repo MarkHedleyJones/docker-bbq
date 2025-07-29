@@ -240,11 +240,9 @@ if [ "${image_name}" != "NULL" ]  && [ "${image_tag}" = "development" ]; then
 fi
 
 # Collect the remaining arguments as the user_command
+user_command_args=()
 if [[ $# -gt 0 ]]; then
-  if [[ "${user_command}" != "" ]]; then
-    user_command+=" "
-  fi
-  user_command+="$*"
+  user_command_args=("$@")
 fi
 
 environment_variables=""
@@ -264,9 +262,7 @@ testing "path_mount_input" "${path_mount_input}"
 testing "path_mount_output" "${path_mount_output}"
 testing "repository_path" "${repository_path}"
 testing "run_with_privileges" "${run_with_privileges}"
-testing "user_command" "${user_command}"
-
-docker_args_workdir+="--workdir=${container_workdir} "
+testing "user_command_args" "${user_command_args[*]}"
 
 # Setup a local bash_history file to link into the container
 bash_history_path="/tmp/.bash_history_${container_name}"
@@ -274,35 +270,23 @@ if [[ ! -f "${bash_history_path}" ]]; then
   # Touch file to so docker wont create it as a dir with root permissions
   touch "${bash_history_path}"
 fi
-docker_args_bash_history="-v ${bash_history_path}:/root/.bash_history "
-
-# Add IO mountpoints
-docker_args_mount_folders=""
-if [ "${path_mount_input}" != "NULL" ]; then
-  docker_args_mount_folders="--mount type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly "
-  docker_args_mount_folders+="--env INPUT_MOUNTPOINT=/mnt/input "
-fi
-if [ "${path_mount_output}" != "NULL" ]; then
-  docker_args_mount_folders+="--mount type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output "
-  docker_args_mount_folders+="--env OUTPUT_MOUNTPOINT=/mnt/output "
-fi
-
-docker_args_mount_workdir=""
-if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
-  docker_args_mount_workdir="-v ${local_workspace}:${image_workspace} "
-fi
 
 # Detect which shell is installed in the image
 shell=$(docker run --entrypoint "" --rm ${image_name}:${image_tag} sh -c 'command -v bash || command -v sh')
 
-docker_command="${shell}"
-if [[ "${user_command}" != "" ]]; then
-  docker_command="${shell} -c \"${user_command}\""
-fi
-
-docker_args_interactive=""
-if [[ "${interactive}" -eq 1 ]]; then
-  docker_args_interactive="--interactive --tty "
+if [[ ${#user_command_args[@]} -gt 0 ]]; then
+  # Join all user command arguments into a single properly quoted string for bash -c
+  user_command_string=""
+  for arg in "${user_command_args[@]}"; do
+    if [[ "${user_command_string}" != "" ]]; then
+      user_command_string+=" "  
+    fi
+    # Escape single quotes in the argument and wrap in single quotes
+    user_command_string+="'${arg//\'/\'\\\'\'}'"
+  done
+  docker_command_args=("${shell}" "-c" "${user_command_string}")
+else
+  docker_command_args=("${shell}")
 fi
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
@@ -312,75 +296,104 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
     info "Linking ${local_workspace} into ${image_name}:${image_workspace}"
   fi
 
-  if [ ${link_aws_credentials} -eq 1 ]; then
-    info "Linking AWS credentials into ${image_name}:${container_workdir}"
-    docker_args_mount_workdir+="-v ${HOME}/.aws:${container_workdir}/.aws "
-  fi
-
-  docker_args_display=""
+  # Setup X11 display if available
   if [[ ${DISPLAY} ]]; then
     xsock=/tmp/.X11-unix
     xauth=/tmp/.docker.xauth
     touch $xauth
     xauth nlist "${DISPLAY}" | sed -e 's/^..../ffff/' | xauth -f "${xauth}" nmerge -
+  fi
 
-    docker_args_display+="-e DISPLAY "
-    docker_args_display+="-e XAUTHORITY=${xauth} "
-    docker_args_display+="-v ${xauth}:${xauth}:rw "
-    docker_args_display+="-v ${xsock}:${xsock}:rw "
-    docker_args_display+="--env QT_X11_NO_MITSHM=1 "
-
+  docker_run_args=(
+    "docker" "run"
+    "--name" "${container_name}"
+    "--rm"
+    "--net" "host"
+  )
+  
+  # Add optional args
+  if [[ ${run_with_privileges} -eq 1 ]]; then
+    docker_run_args+=("--privileged")
+  fi
+  if [[ "${interactive}" -eq 1 ]]; then
+    docker_run_args+=("--interactive" "--tty")
+  fi
+  
+  # Add volume mounts and other args
+  docker_run_args+=("-v" "${bash_history_path}:/root/.bash_history")
+  
+  # Display args
+  if [[ ${DISPLAY} ]]; then
+    docker_run_args+=("-e" "DISPLAY" "-e" "XAUTHORITY=${xauth}" "-v" "${xauth}:${xauth}:rw" "-v" "${xsock}:${xsock}:rw" "--env" "QT_X11_NO_MITSHM=1")
     if [ -d /dev/dri ]; then
-      # Expose direct rendering interface
-      docker_args_display+="--device /dev/dri:/dev/dri "
+      docker_run_args+=("--device" "/dev/dri:/dev/dri")
     fi
     if command -v nvidia-smi >/dev/null; then
-      # Enable Nvidia specific features
-      docker_args_display+="--gpus=all "
-      docker_args_display+="-e NVIDIA_DRIVER_CAPABILITIES=all "
+      docker_run_args+=("--gpus=all" "-e" "NVIDIA_DRIVER_CAPABILITIES=all")
     fi
   fi
-
-  # Setup the user
-  docker_args_user="--env GID=$(id -g) --env UID=$(id -u) "
-
-  docker_args_privileged=""
-  if [[ ${run_with_privileges} -eq 1 ]]; then
-    docker_args_privileged="--privileged "
+  
+  # Workspace mount
+  if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
+    docker_run_args+=("-v" "${local_workspace}:${image_workspace}")
   fi
+  
+  # AWS credentials
+  if [ ${link_aws_credentials} -eq 1 ]; then
+    info "Linking AWS credentials into ${image_name}:${container_workdir}"
+    docker_run_args+=("-v" "${HOME}/.aws:${container_workdir}/.aws")
+  fi
+  
+  # IO mounts
+  if [ "${path_mount_input}" != "NULL" ]; then
+    docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly" "--env" "INPUT_MOUNTPOINT=/mnt/input")
+  fi
+  if [ "${path_mount_output}" != "NULL" ]; then
+    docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output" "--env" "OUTPUT_MOUNTPOINT=/mnt/output")
+  fi
+  
+  # User args
+  docker_run_args+=("--env" "GID=$(id -g)" "--env" "UID=$(id -u)")
+  
+  # Working directory
+  if [[ "${container_workdir}" != "" ]]; then
+    docker_run_args+=("--workdir=${container_workdir}")
+  fi
+  
+  # Environment variables from .env
+  if [ ! -z ${repository_path} ] && [ -f "${repository_path}/.env" ]; then
+    while IFS= read -r line; do
+      docker_run_args+=("--env" "${line}")
+    done <"${repository_path}/.env"
+  fi
+  
+  # Image and command
+  docker_run_args+=("${image_name}:${image_tag}")
+  docker_run_args+=("${docker_command_args[@]}")
 
-  command="docker run \
-    --name ${container_name} \
-    --rm \
-    --net host \
-    ${docker_args_privileged} \
-    ${docker_args_interactive} \
-    ${docker_args_bash_history} \
-    ${docker_args_display} \
-    ${docker_args_mount_workdir} \
-    ${docker_args_mount_folders} \
-    ${docker_args_user} \
-    ${docker_args_workdir} \
-    ${environment_variables} \
-    ${image_name}:${image_tag} \
-    ${docker_command}"
-
-  testing "${command}"
+  testing "${docker_run_args[*]}"
 
   if [[ "${TESTING}" == "False" ]]; then
-    eval "${command}"
+    "${docker_run_args[@]}"
   fi
 else
   info "Running in existing container (${image_name}:${image_tag})"
-  command="docker exec \
-    ${docker_args_interactive} \
-    ${docker_args_workdir} \
-    ${container_name} \
-    ${docker_command}"
+  docker_exec_args=("docker" "exec")
+  
+  if [[ "${interactive}" -eq 1 ]]; then
+    docker_exec_args+=("--interactive" "--tty")
+  fi
+  
+  if [[ "${container_workdir}" != "" ]]; then
+    docker_exec_args+=("--workdir=${container_workdir}")
+  fi
+  
+  docker_exec_args+=("${container_name}")
+  docker_exec_args+=("${docker_command_args[@]}")
 
-  testing "${command}"
+  testing "${docker_exec_args[*]}"
 
   if [[ "${TESTING}" == "False" ]]; then
-    eval "${command}"
+    "${docker_exec_args[@]}"
   fi
 fi
