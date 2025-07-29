@@ -16,7 +16,7 @@ dockerfile_components=(
   base-install-apt-packages
   ros2/base-install-pip-packages-ros2
   base-copy-local-resources
-  ros2/base-create-user-ros2
+  base-create-user-ubuntu-style
   base-setup-workspace-vars
   ros2/target-base-footer
   target-development

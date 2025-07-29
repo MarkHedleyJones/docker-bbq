@@ -14,9 +14,9 @@ dockerfile_args=(
 dockerfile_components=(
   base-header
   base-install-apt-packages
-  base-install-pip-packages
+  ubuntu/base-install-pip-packages-ubuntu
   base-copy-local-resources
-  base-create-user
+  base-create-user-ubuntu-style
   base-setup-workspace-vars
   target-development
   target-development-body

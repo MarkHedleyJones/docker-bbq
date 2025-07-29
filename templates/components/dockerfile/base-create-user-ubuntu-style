@@ -1,0 +1,25 @@
+# Create user account (if necessary) - Ubuntu-style distributions
+ARG USER_GID
+ARG USER_UID  
+ARG USER_NAME
+RUN if [ "${USER_NAME}" != "root" ]; then \
+  # Check if target user already exists \
+  if getent passwd ${USER_NAME} >/dev/null 2>&1; then \
+    echo "User ${USER_NAME} already exists, skipping creation"; \
+  # Handle UID 1000 specially - many Ubuntu-based images have ubuntu:1000:1000 \
+  elif [ "${USER_UID}" = "1000" ] && getent passwd 1000 >/dev/null 2>&1; then \
+    existing_user=$(getent passwd 1000 | cut -d: -f1); \
+    echo "Renaming existing user ${existing_user} to ${USER_NAME}"; \
+    usermod -l ${USER_NAME} ${existing_user} && \
+    usermod -d /home/${USER_NAME} ${USER_NAME} && \
+    if [ -d /home/${existing_user} ]; then \
+      mv /home/${existing_user} /home/${USER_NAME}; \
+    fi; \
+  else \
+    # Create user normally \
+    if ! getent group ${USER_GID} >/dev/null 2>&1; then \
+      groupadd --gid ${USER_GID} ${USER_NAME}; \
+    fi && \
+    useradd --create-home --gid ${USER_GID} --uid ${USER_UID} --shell /bin/bash ${USER_NAME}; \
+  fi; \
+  fi
