@@ -14,12 +14,12 @@ run_with_privileges=0
 verbosity=0
 
 # Allow disabling interactive/tty mode via environment variable (for CI)
-if [ ${DOCKER_BBQ_NON_INTERACTIVE} ]; then
+if [[ ${DOCKER_BBQ_NON_INTERACTIVE} ]]; then
   interactive=0
 fi
 
 # Auto-detect non-interactive environments (no TTY available)
-if [ ! -t 0 ]; then
+if [[ ! -t 0 ]]; then
   interactive=0
 fi
 
@@ -213,7 +213,7 @@ user_command=""
 # Dont mount input/output if we are not in a repository using development image
 # Packaged applications will break if you try to set these parameters
 # Consider creating an `execute` script for production and use `run` for development
-if [ "${image_name}" != "NULL" ]  && [ "${image_tag}" = "development" ]; then
+if [[ "${image_name}" != "NULL" ]] && [[ "${image_tag}" == "development" ]]; then
   # We are inside a docker-bbq repository
   set_container_name "${image_name}" "${image_tag}"
   set_workspace_path "${repository_path}"
@@ -222,9 +222,9 @@ if [ "${image_name}" != "NULL" ]  && [ "${image_tag}" = "development" ]; then
   # position to the workspace outside the image.
   cwd=$(pwd)
   testing "Current working directory = ${cwd}"
-  if [ "${cwd}" == "${repository_path}" ]; then
+  if [[ "${cwd}" == "${repository_path}" ]]; then
     testing " - In reposiory main folder..."
-    if [ "${image_workspace}" != "" ]; then
+    if [[ -n "${image_workspace}" ]]; then
       container_workdir=$(dirname "${image_workspace}")
     else
       container_workdir=""
@@ -246,7 +246,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 environment_variables=""
-if [ ! -z ${repository_path} ] && [ -f "${repository_path}/.env" ]; then
+if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
   while IFS= read -r line; do
     environment_variables+="--env ${line} "
   done <"${repository_path}/.env"
@@ -267,7 +267,7 @@ testing "user_command_args" "${user_command_args[*]}"
 # Setup a local bash_history file to link into the container
 bash_history_path="/tmp/.bash_history_${container_name}"
 if [[ ! -f "${bash_history_path}" ]]; then
-  # Touch file to so docker wont create it as a dir with root permissions
+  # Touch file so docker won't create it as a dir with root permissions
   touch "${bash_history_path}"
 fi
 
@@ -279,7 +279,7 @@ if [[ ${#user_command_args[@]} -gt 0 ]]; then
   user_command_string=""
   for arg in "${user_command_args[@]}"; do
     if [[ "${user_command_string}" != "" ]]; then
-      user_command_string+=" "  
+      user_command_string+=" "
     fi
     # Escape single quotes in the argument and wrap in single quotes
     user_command_string+="'${arg//\'/\'\\\'\'}'"
@@ -325,7 +325,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   # Display args
   if [[ ${DISPLAY} ]]; then
     docker_run_args+=("-e" "DISPLAY" "-e" "XAUTHORITY=${xauth}" "-v" "${xauth}:${xauth}:rw" "-v" "${xsock}:${xsock}:rw" "--env" "QT_X11_NO_MITSHM=1")
-    if [ -d /dev/dri ]; then
+    if [[ -d /dev/dri ]]; then
       docker_run_args+=("--device" "/dev/dri:/dev/dri")
     fi
     if command -v nvidia-smi >/dev/null; then
@@ -339,16 +339,16 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   fi
   
   # AWS credentials
-  if [ ${link_aws_credentials} -eq 1 ]; then
+  if [[ ${link_aws_credentials} -eq 1 ]]; then
     info "Linking AWS credentials into ${image_name}:${container_workdir}"
     docker_run_args+=("-v" "${HOME}/.aws:${container_workdir}/.aws")
   fi
   
   # IO mounts
-  if [ "${path_mount_input}" != "NULL" ]; then
+  if [[ "${path_mount_input}" != "NULL" ]]; then
     docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly" "--env" "INPUT_MOUNTPOINT=/mnt/input")
   fi
-  if [ "${path_mount_output}" != "NULL" ]; then
+  if [[ "${path_mount_output}" != "NULL" ]]; then
     docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output" "--env" "OUTPUT_MOUNTPOINT=/mnt/output")
   fi
   
@@ -361,7 +361,7 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   fi
   
   # Environment variables from .env
-  if [ ! -z ${repository_path} ] && [ -f "${repository_path}/.env" ]; then
+  if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
     while IFS= read -r line; do
       docker_run_args+=("--env" "${line}")
     done <"${repository_path}/.env"
