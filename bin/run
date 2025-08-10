@@ -363,7 +363,10 @@ if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
   # Environment variables from .env
   if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
     while IFS= read -r line; do
-      docker_run_args+=("--env" "${line}")
+      # Skip empty lines and comments
+      if [[ -n "${line}" ]] && [[ ! "${line}" =~ ^[[:space:]]*# ]]; then
+        docker_run_args+=("--env" "${line}")
+      fi
     done <"${repository_path}/.env"
   fi
   
