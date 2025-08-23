@@ -1,6 +1,6 @@
 # Add executable to build ROS workspace (cm)
 USER root
-RUN echo "#!/usr/bin/env bash\nset -eu\ncd ${WORKSPACE}\ncatkin_make \
+RUN echo "#!/usr/bin/env bash\nset -eu\nsource /opt/ros/\${ROS_DISTRO}/setup.bash\ncd ${WORKSPACE}\ncatkin_make \
   -j \$(nproc)\nretcode=\$?\nrospack profile\nsource devel/setup.bash\ncd - \
   > /dev/null\nexit \${retcode}" > /usr/bin/cm && chmod +x /usr/bin/cm
 # Source Catkin development workspace (when using docker run or docker exec)
