@@ -15,105 +15,105 @@ verbosity=0
 
 # Allow disabling interactive/tty mode via environment variable (for CI)
 if [[ ${DOCKER_BBQ_NON_INTERACTIVE} ]]; then
-  interactive=0
+	interactive=0
 fi
 
 # Auto-detect non-interactive environments (no TTY available)
 if [[ ! -t 0 ]]; then
-  interactive=0
+	interactive=0
 fi
 
 testing() {
-  if [[ "${TESTING}" != "False" ]]; then
-    if [[ $# -eq 2 ]]; then
-      echo "$1=$2"
-    elif [[ $# -eq 1 ]]; then
-      echo "$1"
-    fi
-  fi
+	if [[ "${TESTING}" != "False" ]]; then
+		if [[ $# -eq 2 ]]; then
+			echo "$1=$2"
+		elif [[ $# -eq 1 ]]; then
+			echo "$1"
+		fi
+	fi
 }
 
 info() {
-  if [[ "${verbosity}" != "0" ]]; then
-    echo "$@"
-  fi
+	if [[ "${verbosity}" != "0" ]]; then
+		echo "$@"
+	fi
 }
 
 absolute_path() {
-  echo "$(
-    cd "$(dirname "$1")" || return
-    pwd
-  )/$(basename "$1")"
+	echo "$(
+		cd "$(dirname "$1")" || return
+		pwd
+	)/$(basename "$1")"
 }
 
 find_repo_name() {
-  # Crawl up tree to find Docker file, in order to find directory/repo name
-  image_name=NULL
-  repository_path="$(absolute_path "$1")"
-  while [[ ${repository_path} != "/" ]]; do
-    if [[ -f "${repository_path}/Dockerfile" ]]; then
-      image_name=$(basename "${repository_path}")
-      return 0
-    fi
-    repository_path=$(dirname "${repository_path}")
-  done
-  repository_path=NULL
-  return 1
+	# Crawl up tree to find Docker file, in order to find directory/repo name
+	image_name=NULL
+	repository_path="$(absolute_path "$1")"
+	while [[ ${repository_path} != "/" ]]; do
+		if [[ -f "${repository_path}/Dockerfile" ]]; then
+			image_name=$(basename "${repository_path}")
+			return 0
+		fi
+		repository_path=$(dirname "${repository_path}")
+	done
+	repository_path=NULL
+	return 1
 }
 
 get_docker_images() {
-  docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false | grep -v "<none>$"))
+	docker_images_full=($(docker image list --format "{{.Repository}}:{{.Tag}}" --filter=dangling=false | grep -v "<none>$"))
 }
 
 list_docker_images() {
-  get_docker_images
-  for image in "${docker_images_full[@]}"; do
-    echo "$(basename ${image_name})"
-  done
-  exit 0
+	get_docker_images
+	for image in "${docker_images_full[@]}"; do
+		echo "$(basename ${image_name})"
+	done
+	exit 0
 }
 
 set_container_name() {
-  # Controls the format of container names
-  if [[ $# -ne 2 ]]; then
-    error "Error naming container"
-  fi
-  container_name="${1}-${2}"
+	# Controls the format of container names
+	if [[ $# -ne 2 ]]; then
+		error "Error naming container"
+	fi
+	container_name="${1}-${2}"
 }
 
 set_workspace_path() {
-  # Controls the format of container names
-  if [[ $# -ne 1 ]]; then
-    error "Error setting workspace paths"
-  fi
-  repository_path="${1}"
-  if [[ "${repository_path}" != "" ]]; then
-    if [[ -f "${repository_path}/.docker-bbq" ]]; then
-      source ${repository_path}/.docker-bbq
-      image_workspace="${HOME}/${WORKSPACE_NAME}"
-      local_workspace="${repository_path}/${WORKSPACE_NAME}"
-      if [[ "${PRIVILEGED}" == "True" ]]; then
-        run_with_privileges=1
-      fi
-      unset PRIVILEGED
-      unset WORKSPACE_NAME
-    else
-      info "Repository does not contain a .docker-bbq file" \
-        "- no workspace will be mounted"
-    fi
-  fi
+	# Controls the format of container names
+	if [[ $# -ne 1 ]]; then
+		error "Error setting workspace paths"
+	fi
+	repository_path="${1}"
+	if [[ "${repository_path}" != "" ]]; then
+		if [[ -f "${repository_path}/.docker-bbq" ]]; then
+			source ${repository_path}/.docker-bbq
+			image_workspace="${HOME}/${WORKSPACE_NAME}"
+			local_workspace="${repository_path}/${WORKSPACE_NAME}"
+			if [[ "${PRIVILEGED}" == "True" ]]; then
+				run_with_privileges=1
+			fi
+			unset PRIVILEGED
+			unset WORKSPACE_NAME
+		else
+			info "Repository does not contain a .docker-bbq file" \
+				"- no workspace will be mounted"
+		fi
+	fi
 }
 
 error() {
-  # Print the error, in red, then exit
-  if [[ $# -eq 1 ]]; then
-    echo -e "\033[0;31m$1\033[0m"
-  fi
-  exit 1
+	# Print the error, in red, then exit
+	if [[ $# -eq 1 ]]; then
+		echo -e "\033[0;31m$1\033[0m"
+	fi
+	exit 1
 }
 
 usage() {
-  cat <<EOF
+	cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") [-h] [--repo <path_to_repo>] [command]
 
   Enter a docker container and optionally execute a command. If no command is
@@ -156,53 +156,53 @@ EXAMPLES:
 
   Drop into the shell of a docker-bbq repository at specified path.
 EOF
-  exit
+	exit
 }
 
 # Parse parameters
 while :; do
-  case "${1-}" in
-  --aws) link_aws_credentials=1 ;;
-  -h | --help) usage ;;
-  -l | --list) list_docker_images ;;
-  -i | --image)
-    image_name="${2}"
-    # If specifying the image name, assume its a production image
-    image_tag="latest"
-    shift
-    ;;
-  -n | --non-interactive) interactive=0 ;;
-  --mount | --mount-input)
-    path_mount_input="${2}"
-    shift
-    ;;
-  --mount-output)
-    path_mount_output="${2}"
-    shift
-    ;;
-  -r | --repo)
-    input_repo_path="${2}"
-    shift
-    ;;
-  -t | --tag)
-    image_tag="${2}"
-    shift
-    ;;
-  -v | --verbose) verbosity=1 ;;
-  -?*) error "Unknown option: $1" ;;
-  *) break ;;
-  esac
-  shift
+	case "${1-}" in
+	--aws) link_aws_credentials=1 ;;
+	-h | --help) usage ;;
+	-l | --list) list_docker_images ;;
+	-i | --image)
+		image_name="${2}"
+		# If specifying the image name, assume its a production image
+		image_tag="latest"
+		shift
+		;;
+	-n | --non-interactive) interactive=0 ;;
+	--mount | --mount-input)
+		path_mount_input="${2}"
+		shift
+		;;
+	--mount-output)
+		path_mount_output="${2}"
+		shift
+		;;
+	-r | --repo)
+		input_repo_path="${2}"
+		shift
+		;;
+	-t | --tag)
+		image_tag="${2}"
+		shift
+		;;
+	-v | --verbose) verbosity=1 ;;
+	-?*) error "Unknown option: $1" ;;
+	*) break ;;
+	esac
+	shift
 done
 
 if [[ "${image_name}" == "NULL" ]]; then
-  if [[ "${input_repo_path}" == "" ]]; then
-    testing "Searching for reposiory based on current working path"
-    find_repo_name "$(pwd)"
-  else
-    testing "Using a user-provided path to reposiory"
-    find_repo_name "${input_repo_path}"
-  fi
+	if [[ "${input_repo_path}" == "" ]]; then
+		testing "Searching for reposiory based on current working path"
+		find_repo_name "$(pwd)"
+	else
+		testing "Using a user-provided path to reposiory"
+		find_repo_name "${input_repo_path}"
+	fi
 fi
 
 testing "image-from-working-dir" "${image_name}"
@@ -214,42 +214,42 @@ user_command=""
 # Packaged applications will break if you try to set these parameters
 # Consider creating an `execute` script for production and use `run` for development
 if [[ "${image_name}" != "NULL" ]] && [[ "${image_tag}" == "development" ]]; then
-  # We are inside a docker-bbq repository
-  set_container_name "${image_name}" "${image_tag}"
-  set_workspace_path "${repository_path}"
+	# We are inside a docker-bbq repository
+	set_container_name "${image_name}" "${image_tag}"
+	set_workspace_path "${repository_path}"
 
-  # Make sure the working directory in the image is translated to our relative
-  # position to the workspace outside the image.
-  cwd=$(pwd)
-  testing "Current working directory = ${cwd}"
-  if [[ "${cwd}" == "${repository_path}" ]]; then
-    testing " - In reposiory main folder..."
-    if [[ -n "${image_workspace}" ]]; then
-      container_workdir=$(dirname "${image_workspace}")
-    else
-      container_workdir=""
-    fi
-  elif [[ "${local_workspace}" != "" ]] && [[ "${cwd}" == "${local_workspace}"* ]]; then
-    testing " - Under repository's workspace"
-    path_difference="${cwd#${local_workspace}}"
-    container_workdir=${image_workspace}${path_difference}
-  else
-    testing " - Must be outside of repository"
-    container_workdir=$(dirname "${image_workspace}")
-  fi
+	# Make sure the working directory in the image is translated to our relative
+	# position to the workspace outside the image.
+	cwd=$(pwd)
+	testing "Current working directory = ${cwd}"
+	if [[ "${cwd}" == "${repository_path}" ]]; then
+		testing " - In reposiory main folder..."
+		if [[ -n "${image_workspace}" ]]; then
+			container_workdir=$(dirname "${image_workspace}")
+		else
+			container_workdir=""
+		fi
+	elif [[ "${local_workspace}" != "" ]] && [[ "${cwd}" == "${local_workspace}"* ]]; then
+		testing " - Under repository's workspace"
+		path_difference="${cwd#${local_workspace}}"
+		container_workdir=${image_workspace}${path_difference}
+	else
+		testing " - Must be outside of repository"
+		container_workdir=$(dirname "${image_workspace}")
+	fi
 fi
 
 # Collect the remaining arguments as the user_command
 user_command_args=()
 if [[ $# -gt 0 ]]; then
-  user_command_args=("$@")
+	user_command_args=("$@")
 fi
 
 environment_variables=""
 if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
-  while IFS= read -r line; do
-    environment_variables+="--env ${line} "
-  done <"${repository_path}/.env"
+	while IFS= read -r line; do
+		environment_variables+="--env ${line} "
+	done <"${repository_path}/.env"
 fi
 
 testing "container_name" "${container_name}"
@@ -267,136 +267,145 @@ testing "user_command_args" "${user_command_args[*]}"
 # Setup a local bash_history file to link into the container
 bash_history_path="/tmp/.bash_history_${container_name}"
 if [[ ! -f "${bash_history_path}" ]]; then
-  # Touch file so docker won't create it as a dir with root permissions
-  touch "${bash_history_path}"
+	# Touch file so docker won't create it as a dir with root permissions
+	touch "${bash_history_path}"
 fi
 
 # Detect which shell is installed in the image
 shell=$(docker run --entrypoint "" --rm ${image_name}:${image_tag} sh -c 'command -v bash || command -v sh')
 
 if [[ ${#user_command_args[@]} -gt 0 ]]; then
-  # Join all user command arguments into a single properly quoted string for bash -c
-  user_command_string=""
-  for arg in "${user_command_args[@]}"; do
-    if [[ "${user_command_string}" != "" ]]; then
-      user_command_string+=" "
-    fi
-    # Escape single quotes in the argument and wrap in single quotes
-    user_command_string+="'${arg//\'/\'\\\'\'}'"
-  done
-  docker_command_args=("${shell}" "-c" "${user_command_string}")
+	# Join all user command arguments into a single properly quoted string for bash -c
+	user_command_string=""
+	for arg in "${user_command_args[@]}"; do
+		if [[ "${user_command_string}" != "" ]]; then
+			user_command_string+=" "
+		fi
+		# Escape single quotes in the argument and wrap in single quotes
+		user_command_string+="'${arg//\'/\'\\\'\'}'"
+	done
+	docker_command_args=("${shell}" "-c" "${user_command_string}")
 else
-  docker_command_args=("${shell}")
+	docker_command_args=("${shell}")
 fi
 
 if [[ ! $(docker ps --quiet --filter name="${container_name}") ]]; then
-  info "Running in new container (${image_name}:${image_tag})"
+	info "Running in new container (${image_name}:${image_tag})"
 
-  if [[ ${local_workspace} != "" ]]; then
-    info "Linking ${local_workspace} into ${image_name}:${image_workspace}"
-  fi
+	if [[ ${local_workspace} != "" ]]; then
+		info "Linking ${local_workspace} into ${image_name}:${image_workspace}"
+	fi
 
-  # Setup X11 display if available
-  if [[ ${DISPLAY} ]]; then
-    xsock=/tmp/.X11-unix
-    xauth=/tmp/.docker.xauth
-    touch $xauth
-    xauth nlist "${DISPLAY}" | sed -e 's/^..../ffff/' | xauth -f "${xauth}" nmerge -
-  fi
+	# Setup X11 display if available
+	if [[ ${DISPLAY} ]]; then
+		xsock=/tmp/.X11-unix
+		xauth=/tmp/.docker.xauth
+		touch $xauth
+		xauth nlist "${DISPLAY}" | sed -e 's/^..../ffff/' | xauth -f "${xauth}" nmerge -
+	fi
 
-  docker_run_args=(
-    "docker" "run"
-    "--name" "${container_name}"
-    "--rm"
-    "--net" "host"
-  )
-  
-  # Add optional args
-  if [[ ${run_with_privileges} -eq 1 ]]; then
-    docker_run_args+=("--privileged")
-  fi
-  if [[ "${interactive}" -eq 1 ]]; then
-    docker_run_args+=("--interactive" "--tty")
-  fi
-  
-  # Add volume mounts and other args
-  docker_run_args+=("-v" "${bash_history_path}:/root/.bash_history")
-  
-  # Display args
-  if [[ ${DISPLAY} ]]; then
-    docker_run_args+=("-e" "DISPLAY" "-e" "XAUTHORITY=${xauth}" "-v" "${xauth}:${xauth}:rw" "-v" "${xsock}:${xsock}:rw" "--env" "QT_X11_NO_MITSHM=1")
-    if [[ -d /dev/dri ]]; then
-      docker_run_args+=("--device" "/dev/dri:/dev/dri")
-    fi
-    if command -v nvidia-smi >/dev/null; then
-      docker_run_args+=("--gpus=all" "-e" "NVIDIA_DRIVER_CAPABILITIES=all")
-    fi
-  fi
-  
-  # Workspace mount
-  if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
-    docker_run_args+=("-v" "${local_workspace}:${image_workspace}")
-  fi
-  
-  # AWS credentials
-  if [[ ${link_aws_credentials} -eq 1 ]]; then
-    info "Linking AWS credentials into ${image_name}:${container_workdir}"
-    docker_run_args+=("-v" "${HOME}/.aws:${container_workdir}/.aws")
-  fi
-  
-  # IO mounts
-  if [[ "${path_mount_input}" != "NULL" ]]; then
-    docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly" "--env" "INPUT_MOUNTPOINT=/mnt/input")
-  fi
-  if [[ "${path_mount_output}" != "NULL" ]]; then
-    docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output" "--env" "OUTPUT_MOUNTPOINT=/mnt/output")
-  fi
-  
-  # User args
-  docker_run_args+=("--env" "GID=$(id -g)" "--env" "UID=$(id -u)")
-  
-  # Working directory
-  if [[ "${container_workdir}" != "" ]]; then
-    docker_run_args+=("--workdir=${container_workdir}")
-  fi
-  
-  # Environment variables from .env
-  if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
-    while IFS= read -r line; do
-      # Skip empty lines and comments
-      if [[ -n "${line}" ]] && [[ ! "${line}" =~ ^[[:space:]]*# ]]; then
-        docker_run_args+=("--env" "${line}")
-      fi
-    done <"${repository_path}/.env"
-  fi
-  
-  # Image and command
-  docker_run_args+=("${image_name}:${image_tag}")
-  docker_run_args+=("${docker_command_args[@]}")
+	docker_run_args=(
+		"docker" "run"
+		"--name" "${container_name}"
+		"--rm"
+		"--net" "host"
+	)
 
-  testing "${docker_run_args[*]}"
+	# Add optional args
+	if [[ ${run_with_privileges} -eq 1 ]]; then
+		docker_run_args+=("--privileged")
+	fi
+	if [[ "${interactive}" -eq 1 ]]; then
+		docker_run_args+=("--interactive" "--tty")
+	fi
 
-  if [[ "${TESTING}" == "False" ]]; then
-    "${docker_run_args[@]}"
-  fi
+	# Add volume mounts and other args
+	docker_run_args+=("-v" "${bash_history_path}:/root/.bash_history")
+
+	# Display args
+	if [[ ${DISPLAY} ]]; then
+		docker_run_args+=("-e" "DISPLAY" "-e" "XAUTHORITY=${xauth}" "-v" "${xauth}:${xauth}:rw" "-v" "${xsock}:${xsock}:rw" "--env" "QT_X11_NO_MITSHM=1")
+		if [[ -d /dev/dri ]]; then
+			docker_run_args+=("--device" "/dev/dri:/dev/dri")
+		fi
+		if command -v nvidia-smi >/dev/null; then
+			docker_run_args+=("--gpus=all" "-e" "NVIDIA_DRIVER_CAPABILITIES=all")
+		fi
+	fi
+
+	# Workspace mount
+	if [[ "${local_workspace}" != "" ]] && [[ "${image_workspace}" != "" ]]; then
+		docker_run_args+=("-v" "${local_workspace}:${image_workspace}")
+	fi
+
+	# AWS credentials
+	if [[ ${link_aws_credentials} -eq 1 ]]; then
+		info "Linking AWS credentials into ${image_name}:${container_workdir}"
+		docker_run_args+=("-v" "${HOME}/.aws:${container_workdir}/.aws")
+	fi
+
+	# IO mounts
+	if [[ "${path_mount_input}" != "NULL" ]]; then
+		docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_input}"),target=/mnt/input,readonly" "--env" "INPUT_MOUNTPOINT=/mnt/input")
+	fi
+	if [[ "${path_mount_output}" != "NULL" ]]; then
+		docker_run_args+=("--mount" "type=bind,source=$(absolute_path "${path_mount_output}"),target=/mnt/output" "--env" "OUTPUT_MOUNTPOINT=/mnt/output")
+	fi
+
+	# User args
+	docker_run_args+=("--env" "GID=$(id -g)" "--env" "UID=$(id -u)")
+
+	# Add docker-bbq context variables for path translation
+	if [[ -n "${repository_path}" ]]; then
+		docker_run_args+=("--env" "DOCKER_BBQ_HOST_REPO_PATH=${repository_path}")
+		if [[ -n "${local_workspace}" ]] && [[ -n "${image_workspace}" ]]; then
+			docker_run_args+=("--env" "DOCKER_BBQ_HOST_WORKSPACE_PATH=${local_workspace}")
+			docker_run_args+=("--env" "DOCKER_BBQ_CONTAINER_WORKSPACE_PATH=${image_workspace}")
+		fi
+	fi
+
+	# Working directory
+	if [[ "${container_workdir}" != "" ]]; then
+		docker_run_args+=("--workdir=${container_workdir}")
+	fi
+
+	# Environment variables from .env
+	if [[ -n "${repository_path}" ]] && [[ -f "${repository_path}/.env" ]]; then
+		while IFS= read -r line; do
+			# Skip empty lines and comments
+			if [[ -n "${line}" ]] && [[ ! "${line}" =~ ^[[:space:]]*# ]]; then
+				docker_run_args+=("--env" "${line}")
+			fi
+		done <"${repository_path}/.env"
+	fi
+
+	# Image and command
+	docker_run_args+=("${image_name}:${image_tag}")
+	docker_run_args+=("${docker_command_args[@]}")
+
+	testing "${docker_run_args[*]}"
+
+	if [[ "${TESTING}" == "False" ]]; then
+		"${docker_run_args[@]}"
+	fi
 else
-  info "Running in existing container (${image_name}:${image_tag})"
-  docker_exec_args=("docker" "exec")
-  
-  if [[ "${interactive}" -eq 1 ]]; then
-    docker_exec_args+=("--interactive" "--tty")
-  fi
-  
-  if [[ "${container_workdir}" != "" ]]; then
-    docker_exec_args+=("--workdir=${container_workdir}")
-  fi
-  
-  docker_exec_args+=("${container_name}")
-  docker_exec_args+=("${docker_command_args[@]}")
+	info "Running in existing container (${image_name}:${image_tag})"
+	docker_exec_args=("docker" "exec")
 
-  testing "${docker_exec_args[*]}"
+	if [[ "${interactive}" -eq 1 ]]; then
+		docker_exec_args+=("--interactive" "--tty")
+	fi
 
-  if [[ "${TESTING}" == "False" ]]; then
-    "${docker_exec_args[@]}"
-  fi
+	if [[ "${container_workdir}" != "" ]]; then
+		docker_exec_args+=("--workdir=${container_workdir}")
+	fi
+
+	docker_exec_args+=("${container_name}")
+	docker_exec_args+=("${docker_command_args[@]}")
+
+	testing "${docker_exec_args[*]}"
+
+	if [[ "${TESTING}" == "False" ]]; then
+		"${docker_exec_args[@]}"
+	fi
 fi
